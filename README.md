@@ -82,9 +82,9 @@ A list containing all roles with a brief explaination of what they do.
 - [mysql](roles/mysql): Set up MariaDB with databases, users and permissions.
 - [php-fpm](roles/php-fpm): Set up PHP-FPM with specific versions and modules.
 - [pihole](roles/pihole): Set up PiHole with unbound and adlists.
-- [prometheus](roles/prometheus): 
-- [proxy](roles/proxy): 
-- [router](roles/router): 
-- [sshd](roles/sshd): 
-- [syncthing](roles/syncthing): 
+- [prometheus](roles/prometheus): Set up prometheus hosts.
+- [proxy](roles/proxy): Set up proxy for web serviecs.
+- [router](roles/router): Set up a router with DHCP, NAT and firewall.
+- [sshd](roles/sshd): Configure sshd.
+- [syncthing](roles/syncthing): Set up Syncthing Discovery and Relay services.
 - [update](roles/update): Updates hosts with newest packages.
