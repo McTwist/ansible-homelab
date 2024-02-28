@@ -1,0 +1,113 @@
+---
+- name: Install dependencies
+  package:
+    name:
+    - unzip
+    - tar
+
+- name: Create syncthing group
+  group:
+    name: syncthing
+    system: yes
+- name: Create syncthing user
+  user:
+    name: syncthing
+    group: syncthing
+    system: yes
+- name: Create Syncthing Discovery folder
+  file:
+    state: directory
+    path: /var/lib/syncthing/discosrv
+    owner: syncthing
+    group: syncthing
+- name: Create Syncthing Relay folder
+  file:
+    state: directory
+    path: /var/lib/syncthing/relaysrv
+    owner: syncthing
+    group: syncthing
+
+- name: Download Syncthing Discovery
+  tags: discovery
+  get_url:
+    url: https://github.com/syncthing/discosrv/releases/download/v1.18.6/stdiscosrv-linux-amd64-v1.18.6.tar.gz
+    dest: /tmp/stdiscosrv.tar.gz
+- name: Unpack Syncthing Discovery
+  tags: discovery
+  unarchive:
+    remote_src: yes
+    src: /tmp/stdiscosrv.tar.gz
+    dest: /tmp
+- name: Install Syncthing Discovery
+  tags: discovery
+  copy:
+    remote_src: yes
+    src: /tmp/stdiscosrv-linux-amd64-v1.18.6/stdiscosrv
+    dest: /usr/local/bin/stdiscosrv
+    mode: '755'
+  notify: discosrv
+- name: Install Syncthing Discovery Service
+  tags: discovery
+  block:
+  - name: Copy service file
+    copy:
+      src: stdiscosrv.service
+      dest: /etc/systemd/system/stdiscosrv.service
+    notify: discosrv
+    when: "'systemd' == ansible_service_mgr"
+  - name: Copy init file
+    copy:
+      src: stdiscosrv.rc
+      dest: /etc/init.d/stdiscosrv
+      mode: '755'
+    notify: discosrv
+    when: "'openrc' == ansible_service_mgr"
+- name: Enable service
+  service:
+    name: stdiscosrv
+    enabled: yes
+
+- name: Download Syncthing Relay
+  tags: relay
+  get_url:
+    url: https://github.com/syncthing/relaysrv/releases/download/v1.18.6/strelaysrv-linux-amd64-v1.18.6.tar.gz
+    dest: /tmp/strelaysrv.tar.gz
+- name: Unpack Syncthing Relay
+  tags: relay
+  unarchive:
+    remote_src: yes
+    src: /tmp/strelaysrv.tar.gz
+    dest: /tmp
+- name: Install Syncthing Relay
+  tags: relay
+  copy:
+    remote_src: yes
+    src: /tmp/strelaysrv-linux-amd64-v1.18.6/strelaysrv
+    dest: /usr/local/bin/strelaysrv
+    mode: '755'
+  notify: relaysrv
+- name: Copy default config
+  tags: relay
+  copy:
+    src: syncthing-relaysrv
+    dest: /etc/default/syncthing-relaysrv
+- name: Install Syncthing Relay Service
+  tags: relay
+  block:
+  - name: Copy service file
+    copy:
+      src: strelaysrv.service
+      dest: /etc/systemd/system/strelaysrv.service
+    notify: relaysrv
+    when: "'systemd' == ansible_service_mgr"
+  - name: Copy init file
+    copy:
+      src: strelaysrv.rc
+      dest: /etc/init.d/strelaysrv
+      mode: '755'
+    notify: relaysrv
+    when: "'openrc' == ansible_service_mgr"
+- name: Enable service
+  service:
+    name: strelaysrv
+    enabled: yes

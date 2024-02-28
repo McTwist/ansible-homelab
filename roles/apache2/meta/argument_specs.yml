@@ -1,0 +1,33 @@
+---
+argument-specs:
+  main:
+    options:
+      domains:
+        type: "list"
+        elements: "dict"
+        required: yes
+        description: List of filtered domains
+        options:
+          name:
+            type: "str"
+            required: yes
+          user:
+            type: "str"
+            requires: yes
+          admin:
+            type: "str"
+            required: no
+          alias:
+            required: no
+          root_offset:
+            type: "str"
+            required: no
+          php:
+            type: "dict"
+            required: no
+          charset:
+            type: "str"
+            required: no
+          custom_config:
+            type: "str"
+            required: no

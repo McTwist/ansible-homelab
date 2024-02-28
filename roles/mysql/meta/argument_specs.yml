@@ -1,0 +1,22 @@
+---
+argument-specs:
+  main:
+    options:
+      db_password:
+        type: "str"
+        required: no
+        description: Password for database
+      db:
+        type: "list"
+        elements: "dict"
+        required: yes
+        description: List of databases
+        options:
+          name:
+            type: "str"
+            required: yes
+          user:
+            type: "str"
+            required: yes
+          priv:
+            required: yes

@@ -1,0 +1,77 @@
+---
+
+- name: Set up MySQL
+  block:
+
+  - name: Install MySQL
+    tags:
+    - mysql
+    - install
+    package:
+      name:
+      - mariadb-server
+      - python3-pymysql
+      state: present
+
+  - name: Check .my.cnf
+    tags: mysql.conf
+    stat:
+      path: /root/.my.cnf
+    register: my
+
+  - when: my.stat.isreg is undefined or not my.stat.isreg
+    block:
+    - name: Check password
+      fail:
+        msg: Require variable "db_password" to create database connection
+      when: db_password is undefined
+
+    - name: Create .my.cnf
+      tags: mysql.conf
+      no_log: yes
+      template:
+        src: my.cnf.j2
+        dest: /root/.my.cnf
+        owner: root
+        group: root
+        mode: '0600'
+      check_mode: no
+
+  - name: Add databases
+    tags:
+    - mysql
+    - db
+    mysql_db:
+      name: "{{ db | map(attribute='db.name') | unique }}"
+      collation: utf8mb4_general_ci
+
+  - name: Remove all anonymous users
+    tags:
+    - mysql
+    - users
+    mysql_user:
+      name: ''
+      host_all: yes
+      state: absent
+
+  - name: Create users
+    tags:
+    - mysql
+    - users
+    mysql_user:
+      name: "{{ item }}"
+      password: "{{ omit if users[item] is not defined else users[item] }}"
+    diff: no
+    with_items: "{{ db | map(attribute='db.user') | unique }}"
+
+  - name: Apply permission to databases
+    tags:
+    - mysql
+    - permission
+    mysql_user:
+      name: "{{ item.user }}"
+      # Note: This might need some change if more special cases are needed
+      priv: "{{ item.name }}.*:{{ [item.priv] | flatten | join(',') }}"
+    with_items: "{{ db | map(attribute='db') | flatten | selectattr('priv', 'defined') }}"
+    loop_control:
+      label: "{{ item.user }}"

@@ -1,0 +1,6 @@
+---
+- name: pacman update
+  tags:
+  - update
+  community.general.pacman:
+    upgrade: true

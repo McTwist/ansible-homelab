@@ -1,0 +1,183 @@
+---
+
+# Phase 1
+# 1. Make sure that the requested php versions are installed
+# 3. Add new configs, including domain+php-version for unix socket
+# 4. Reload all new changed php-fpm
+# 5. Change symbolic link to their own unix socket
+# Phase 2
+# 6. Remove old config not found in the state
+# 7. Remove not used php-modules
+# 9. Reload all existing php-fpm
+
+- name: Add PHP repository
+  tags: install
+  block:
+  - name: Install prerequisities
+    apt:
+      name: gnupg
+  - name: Add repository
+    apt_repository:
+      repo: ppa:ondrej/php
+
+- name: Manage PHP
+  vars:
+    php: "{{ domains | map(attribute='php.version') | unique }}"
+    modules: "{{ domains | selectattr('php.modules', 'defined') | map(attribute='php') | get_php_modules(php_default_modules) }}"
+    pools: "{{ domains | flatten_dict('php.pool', ['name', 'user', 'group', 'php.version']) }}"
+  block:
+  - name: Get installed packages
+    tags: always
+    package_facts:
+      manager: apt
+
+  - name: Set old facts
+    tags: always
+    vars:
+      installed_modules: "{{ ansible_facts.packages.keys() | select('regex', '^php[\\d\\.]+-\\w+$') }}"
+    set_fact:
+      restart_php: "{{ php }}"
+      installed_modules: "{{ installed_modules }}"
+      new_modules: "{{ modules | difference(installed_modules) }}"
+      remove_modules: "{{ installed_modules | difference(modules) }}"
+
+  - name: Install new PHP modules
+    tags: install
+    apt:
+      name: "{{ new_modules }}"
+      state: present
+
+# TODO: Make this work
+# - name: Set default PHP options
+#   tags: config
+#   ini_file:
+#     path: /etc/php/{{ php_version }}/fpm/php.ini
+#     section: "{{ item.section | default('PHP') }}"
+#     option: "{{ item.option }}"
+#     value: "{{ item.value }}"
+#     state: "{{ item.state | default('present') }}"
+#   with_items: "{{ php_fpm_ini_options }}"
+#   notify: Reload php-fpm
+#   when: false
+
+  - name: Create sess folder
+    tags: config
+    vars:
+      pool: "{{ php_fpm_pool_defaults | combine(item) }}"
+    file:
+      state: directory
+      path: "{{ www_path }}/{{ pool.user }}/tmp/{{ pool.name }}/sess"
+      owner: "{{ pool.user }}"
+      group: "{{ pool.group | default(pool.user) }}"
+      mode: '0755'
+    loop: "{{ pools }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Create upload folder
+    tags: config
+    vars:
+      pool: "{{ php_fpm_pool_defaults | combine(item) }}"
+    file:
+      state: directory
+      path: "{{ www_path }}/{{ pool.user }}/tmp/{{ pool.name }}/upload"
+      owner: "{{ pool.user }}"
+      group: "{{ pool.group | default(pool.user) }}"
+      mode: '0755'
+    loop: "{{ pools }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Configure config
+    tags: config
+    vars:
+      pool: "{{ php_fpm_pool_defaults | combine(item) }}"
+      open_basedir:
+      - "{{ www_path }}/{{ pool.user }}/{{ pool.name }}"
+      - "{{ www_path }}/{{ pool.user }}/tmp/{{ pool.name }}"
+      - /var/www/users/www-data/statistics
+      - "{{ [pool.open_basedir | default([])] | flatten }}"
+    template_config:
+      src: pool.conf.j2
+      dest: "/etc/php/{{ pool.version }}/fpm/pool.d/{{ pool.name }}.conf"
+      lstrip_blocks: yes
+      validate: "php-fpm{{ pool.version }} -t"
+    loop: "{{ pools }}"
+    loop_control:
+      label: "{{ item.name }}"
+    notify: "restart php"
+
+  # First reload, first phase done
+  - name: Restart fpm
+    meta: flush_handlers
+    tags: always
+
+  - name: Create php folder
+    tags: link
+    file:
+      state: directory
+      dest: "/var/php"
+      owner: www-data
+      group: www-data
+
+  - name: Update symbolic link for socket
+    tags: link
+    file:
+      state: link
+      src: "/var/run/php/{{ item.name }}-{{ item.version }}.sock"
+      dest: "/var/php/{{ item.name }}.sock"
+      owner: www-data
+      group: www-data
+      force: yes # To avoid issues with --check
+    loop: "{{ pools }}"
+    loop_control:
+      label: "{{ item.name }}"
+    notify: "restart php"
+
+  - name: Get current PHP configs
+    tags: always
+    php_facts:
+
+  - name: Set new facts
+    tags: always
+    set_fact:
+      remove_config: "{{ ansible_facts.php_config | diff_config(pools, ['name', 'version']) }}"
+
+  - name: Remove unused pools
+    tags: config
+    file:
+      path: "/etc/php/{{ item.version }}/fpm/pool.d/{{ item.name }}.conf"
+      state: absent
+    loop: "{{ remove_config }}"
+    loop_control:
+      label: "{{ item.name }}"
+    notify: "restart php"
+
+  - name: Remove unused sockets
+    tags: reload
+    file:
+      path: "/var/php/{{ item.name }}.sock"
+      state: absent
+    loop: "{{ remove_config }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Remove unused PHP modules
+    tags: uninstall
+    apt:
+      name: "{{ remove_modules }}"
+      state: absent
+      purge: yes
+      autoremove: yes
+    notify: "restart php"
+
+  - name: Removed PHP modules
+    debug:
+      var: remove_modules
+    when: remove_modules
+    notify: "restart php"
+
+  # Second reload, second phase done
+  - name: Restart fpm
+    meta: flush_handlers
+    tags: always

@@ -1,0 +1,6 @@
+{{ ansible_managed | comment(decoration='# ') }}
+[client]
+socket=/var/run/mysqld/mysqld.sock
+{% if db_password | length > 0 %}
+password={{ db_password | mandatory }}
+{% endif %}

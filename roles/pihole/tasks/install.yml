@@ -1,0 +1,63 @@
+---
+- name: Check installed
+  stat:
+    path: /etc/pihole
+  register: pihole
+- name: Install pihole
+  block:
+
+  - name: Create pihole folder
+    file:
+      path: /etc/pihole
+      state: directory
+  - name: Copy configs
+    template:
+      src: setupVars.conf.j2
+      dest: /etc/pihole/setupVars.conf
+  - name: Copy FTL configs
+    template:
+      src: pihole-FTL.conf.j2
+      dest: /etc/pihole/pihole-FTL.conf
+  - name: Download pihole
+    get_url:
+      url: https://install.pi-hole.net
+      dest: ./pihole-install.sh
+  - name: Install pihole
+    command: bash ./pihole-install.sh --unattended
+  - name: Set admin password
+    no_log: yes
+    command: pihole -a -p {{ pihole_password }}
+    when: pihole_password is defined
+  - name: Disable logging
+    command: pihole -l off noflush
+    when: "'rpi' in group_names"
+
+  when: not pihole.stat.exists
+- name: Add EDNS config
+  lineinfile:
+    line: "edns-packet-max=1232"
+    dest: /etc/dnsmasq.d/99-edns.conf
+    create: yes
+
+- name: Disable systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: stopped
+    enabled: no
+- name: Restart DNS
+  command: pihole restartdns
+- name: Restart FTL
+  service:
+    name: pihole-FTL
+    state: restarted
+- name: Add unbound folder
+  file:
+    path: /etc/unbound/unbound.conf.d
+    state: directory
+- name: Add unbound pi-hole settings
+  copy:
+    src: pi-hole.conf
+    dest: /etc/unbound/unbound.conf.d/pi-hole.conf
+- name: Install unbound
+  apt:
+    name: unbound

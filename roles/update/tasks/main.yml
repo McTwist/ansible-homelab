@@ -1,0 +1,25 @@
+---
+- name: Launch correct distro
+  tags:
+  - always
+  block:
+  - include_tasks: "{{ ansible_pkg_mgr | lower }}.yml"
+  # TODO: Find a better way to handle this
+  - name: Check for services
+    service_facts:
+    #when: "(ansible_os_family | lower) not in ['ansible', 'alpine']"
+  - name: Make sure qemu-guest-agent have started
+    service:
+      name: qemu-guest-agent
+      state: started
+    when: "services is defined and 'qemu-guest-agent' in services"
+
+- name: PVE
+  block:
+  - import_tasks: pve.yml
+  when: "'pve' in group_names"
+
+- name: PBS
+  block:
+  - import_tasks: pbs.yml
+  when: "'pbs' in group_names"

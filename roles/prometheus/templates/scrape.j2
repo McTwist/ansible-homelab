@@ -1,0 +1,9 @@
+{{ ansible_managed | comment(decoration="# ") }}
+- targets:
+{% for hostname in hostvars %}
+{%   if hostname in groups[group]
+	and hostvars[hostname].prometheus_port is defined 
+	and hostvars[hostname].dhcp_ipv4 is defined %}
+  - '{{ hostvars[hostname].dhcp_ipv4 }}:{{ hostvars[hostname].prometheus_port }}'
+{%   endif %}
+{% endfor %}

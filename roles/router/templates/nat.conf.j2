@@ -1,0 +1,51 @@
+interfaces {}
+nat {
+{##}{% for target in nat %}
+	{{ target }} {
+{#    #}{% for rule in nat[target] %}
+		rule {{ loop.index }} {
+			description "{{ rule.description }}"
+{#        #}{% if rule['outbound-interface'] is defined %}
+			outbound-interface {{ rule['outbound-interface'] }}
+{#        #}{% endif %}
+{#        #}{% if rule.protocol is defined %}
+			protocol {{ rule.protocol }}
+{#        #}{% endif %}
+{#        #}{% if rule['inbound-interface'] is defined %}
+			inbound-interface {{ rule['inbound-interface'] }}
+{#        #}{% endif %}
+{#        #}{% if rule.source is defined %}
+			source {
+{#            #}{% if rule.source.address is defined %}
+				address {{ rule.source.address }}
+{#            #}{% endif %}
+{#            #}{% if rule.source.port is defined %}
+				port {{ rule.source.port }}
+{#            #}{% endif %}
+			}
+{#        #}{% endif %}
+{#        #}{% if rule.destination is defined %}
+			destination {
+{#            #}{% if rule.destination.address is defined %}
+				address {{ rule.destination.address }}
+{#            #}{% endif %}
+{#            #}{% if rule.destination.port is defined %}
+				port {{ rule.destination.port }}
+{#            #}{% endif %}
+			}
+{#        #}{% endif %}
+{#        #}{% if rule.translation is defined %}
+			translation {
+{#            #}{% if rule.translation.address is defined %}
+				address {{ rule.translation.address }}
+{#            #}{% endif %}
+{#            #}{% if rule.translation.port is defined %}
+				port {{ rule.translation.port }}
+{#            #}{% endif %}
+			}
+{#        #}{% endif %}
+		}
+{#    #}{% endfor %}
+	}
+{##}{% endfor %}
+}

@@ -1,0 +1,19 @@
+[Unit]
+Description=Syncthing Relay Server
+After=network.target
+Documentation=man:strelaysrv(1)
+
+[Service]
+User=syncthing
+Group=syncthing
+ExecStart=/usr/local/bin/strelaysrv -pools= -protocol=tcp4 -provided-by=Ronestar -global-rate=5000000 -keys=/var/lib/syncthing/relaysrv
+WorkingDirectory=/var/lib/syncthing/relaysrv
+
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
+

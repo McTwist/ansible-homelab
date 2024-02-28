@@ -1,0 +1,51 @@
+{% if clear is defined and clear %}
+delete nat
+{% endif %}
+{# Go through targets #}
+{% for target in nat %}
+{# Rules #}
+	{% for rule in nat[target] %}
+		{% if rule.description is defined %}
+set nat {{ target }} rule {{ loop.index }} description "{{ rule.description }}"
+		{% endif %}
+		{# Outbound interface #}
+		{% if rule['outbound-interface'] is defined %}
+set nat {{ target }} rule {{ loop.index }} outbound-interface {{ rule['outbound-interface'] }}
+		{% endif %}
+		{# protocol #}
+		{% if rule.protocol is defined %}
+set nat {{ target }} rule {{ loop.index }} protocol {{ rule.protocol }}
+		{% endif %}
+		{# Inbound interface #}
+		{% if rule['inbound-interface'] is defined %}
+set nat {{ target }} rule {{ loop.index }} inbound-interface {{ rule['inbound-interface'] }}
+		{% endif %}
+		{# Source #}
+		{% if rule.source is defined %}
+			{% if rule.source.address is defined %}
+set nat {{ target }} rule {{ loop.index }} source address {{ rule.source.address }}
+			{% endif %}
+			{% if rule.source.port is defined %}
+set nat {{ target }} rule {{ loop.index }} source port {{ rule.source.port }}
+			{% endif %}
+		{% endif %}
+		{# Destination #}
+		{% if rule.destination is defined %}
+			{% if rule.destination.address is defined %}
+set nat {{ target }} rule {{ loop.index }} destination address {{ rule.destination.address }}
+			{% endif %}
+			{% if rule.destination.port is defined %}
+set nat {{ target }} rule {{ loop.index }} destination port {{ rule.destination.port }}
+			{% endif %}
+		{% endif %}
+		{# Translation #}
+		{% if rule.translation is defined %}
+			{% if rule.translation.address is defined %}
+set nat {{ target }} rule {{ loop.index }} translation address {{ rule.translation.address }}
+			{% endif %}
+			{% if rule.translation.port is defined %}
+set nat {{ target }} rule {{ loop.index }} translation port {{ rule.translation.port }}
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+{% endfor %}

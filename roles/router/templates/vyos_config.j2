@@ -1,0 +1,6 @@
+{% if clear is defined and clear %}
+delete {{ type }}
+{% endif %}
+{% for config in configs | vyos_stringify %}
+set {{ type }} {{ config }}
+{% endfor %}

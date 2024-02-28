@@ -1,0 +1,4 @@
+---
+- name: Save vyos config
+  vyos_config:
+    save: yes

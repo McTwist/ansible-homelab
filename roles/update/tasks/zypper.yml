@@ -1,0 +1,7 @@
+---
+- name: zypper update
+  tags:
+  - update
+  community.general.zypper:
+    name: "*"
+    state: latest

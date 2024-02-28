@@ -1,0 +1,22 @@
+---
+- name: apt update
+  tags:
+  - update
+  ansible.builtin.apt:
+    #force_apt_get: yes
+    update_cache: yes
+    upgrade: full
+    autoclean: yes
+    clean: yes
+- name: Check reboot
+  tags:
+  - reboot
+  stat:
+    path: /var/run/reboot-required
+  register: p
+- name: Reboot
+  # Note: Does not work for containers
+  reboot:
+  when:
+  - p.stat.exists
+  - no_reboot is not defined or not no_reboot

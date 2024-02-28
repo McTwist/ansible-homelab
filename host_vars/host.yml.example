@@ -1,0 +1,38 @@
+---
+# Some of the following configs can be set per group
+
+# The set IP for the host
+dhcp_ipv4: &ipv4 10.0.0.1
+# The MAC address to tie to the IP
+dhcp_mac: FF:FF:FF:FF:FF:FF
+# Set up prometheus and port
+prometheus_port: 9100
+# Do not reboot if necessary
+no_reboot: yes
+
+# Only for LXC
+lxc_host: 100
+ansible_host: pve
+ansible_connection: lxc_ssh
+
+# Only for non-LXC
+# Example of setting the IP for the host instead of hostname
+ansible_host: *ipv4
+
+# DNS
+dns:
+  public:
+  - name: example.com
+    type: A
+    a: "{{ dhcp_ipv4 }}"
+  private:
+  - name: example.com
+    type: CNAME
+    cname: "{{ inventory_hostname }}.lan.example.com"
+
+# NAT
+nat:
+- description: Port forwarding
+  protocol: tcp
+  destination: 80
+  translation: 8080

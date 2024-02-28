@@ -1,0 +1,8 @@
+---
+- name: brew update
+  become: no
+  tags:
+  - update
+  community.general.homebrew:
+    update_homebrew: yes
+    upgrade_all: true

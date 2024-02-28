@@ -1,0 +1,10 @@
+---
+- name: Reload sshd
+  become: yes
+  service:
+    name: sshd
+    state: reloaded
+
+- name: Save router config
+  vyos_config:
+    save: yes

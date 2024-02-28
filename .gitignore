@@ -1,0 +1,6 @@
+# Ansible
+*.retry
+
+# Python
+__pycache__/
+

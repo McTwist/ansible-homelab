@@ -1,0 +1,43 @@
+---
+- name: Load configs
+  block:
+  - name: node
+    vars:
+    - group: node
+    template:
+      src: "scrape.j2"
+      dest: "/etc/prometheus/config/node.yml"
+      owner: "root"
+      group: "root"
+      mode: 0644
+    notify: Reload prometheus
+  - name: vm
+    vars:
+    - group: vm
+    template:
+      src: "scrape.j2"
+      dest: "/etc/prometheus/config/vm.yml"
+      owner: "root"
+      group: "root"
+      mode: 0644
+    notify: Reload prometheus
+  - name: ct
+    vars:
+    - group: ct
+    template:
+      src: "scrape.j2"
+      dest: "/etc/prometheus/config/ct.yml"
+      owner: "root"
+      group: "root"
+      mode: 0644
+    notify: Reload prometheus
+  - name: network
+    vars:
+    - group: network
+    template:
+      src: "scrape.j2"
+      dest: "/etc/prometheus/config/net.yml"
+      owner: "root"
+      group: "root"
+      mode: 0644
+    notify: Reload prometheus

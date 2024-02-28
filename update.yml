@@ -1,0 +1,15 @@
+---
+- name: Filter unreachable
+  hosts: vm:ct:node:!ignored
+  gather_facts: no
+  tasks:
+  - name: Check reachable
+    no_log: yes
+    ping:
+
+- name: Update
+  hosts: vm:ct:node:!ignored
+  gather_facts: yes
+  tasks:
+  - include_role:
+      name: update

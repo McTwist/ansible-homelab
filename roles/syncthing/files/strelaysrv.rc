@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+command="/usr/local/bin/strelaysrv"
+command_args="-pools= -protocol=tcp4 -provided-by=Ronestar -global-rate=5000000 -keys=/var/lib/syncthing/relaysrv"
+command_user="syncthing"
+command_background="true"
+start_stop_daemon_args="--chdir /var/lib/syncthing/relaysrv"
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/var/lib/syncthing/relaysrv/strelaysrv.log"
+error_log="/var/lib/syncthing/relaysrv/strelaysrv.err"
+
+depend() {
+	need net
+}

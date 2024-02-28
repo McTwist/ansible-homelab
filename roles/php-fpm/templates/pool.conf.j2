@@ -1,0 +1,35 @@
+{{ ansible_managed | comment(decoration="; ") }}
+[{{ pool.name }}]
+
+user = {{ pool.user }}
+group = {{ pool.group | default(pool.user) }}
+
+listen = /run/php/{{ pool.name }}-{{ pool.version }}.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 600
+
+pm = {{ pool.pm | mandatory }}
+pm.max_children = {{ pool.max_children | mandatory }}
+{% if pool.pm == "dynamic" %}
+pm.start_servers = {{ pool.start_servers | mandatory }}
+pm.min_spare_servers = {{ pool.min_spare_servers | mandatory }}
+pm.max_spare_servers = {{ pool.max_spare_servers | mandatory }}
+{% elif pool.pm == "ondemand" %}
+pm.process_idle_timeout = {{ pool.process_idle_timeout | mandatory }}
+{% endif %}
+{% if pool.max_requests is defined %}
+pm.max_requests = {{ pool.max_requests }}
+{% endif %}
+{% if pool.status_path is defined %}
+pm.status_path = {{ pool.status_path }}
+{% endif %}
+
+php_admin_value[open_basedir] = {{ open_basedir | flatten | join(":") }}
+php_admin_value[session.save_path] = {{ www_path }}/{{ pool.user }}/tmp/{{ pool.name }}/sess
+php_admin_value[upload_tmp_dir] = {{ www_path }}/{{ pool.user }}/tmp/{{ pool.name }}/upload
+php_flag[log_errors] = on
+php_value[error_log] = {{ www_path }}/{{ pool.user }}/tmp/{{ pool.name }}/php.log
+{% if pool.memory_limit is defined %}
+php_admin_value[memory_limit] = {{ pool.memory_limit }}
+{% endif %}

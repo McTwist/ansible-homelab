@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+command="/usr/local/bin/stdiscosrv"
+command_args="-http -db-dir=/var/lib/syncthing/discosrv"
+command_user="syncthing"
+command_background="true"
+start_stop_daemon_args="--chdir /var/lib/syncthing/discosrv"
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/var/lib/syncthing/discosrv/stdiscosrv.log"
+error_log="/var/lib/syncthing/discosrv/stdiscosrv.err"
+
+depend() {
+	need net
+}

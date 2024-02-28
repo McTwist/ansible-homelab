@@ -1,0 +1,18 @@
+---
+
+- name: Restart pveproxy
+  service:
+    name: pveproxy
+    state: restarted
+- name: Restart lxcfs
+  block:
+  # No idea why this does not work
+  - command: systemctl daemon-reload
+  - service:
+      daemon_reload: yes
+      name: lxcfs
+      state: restarted
+- name: Restart proxmox-backup-proxy
+  service:
+    name: proxmox-backup-proxy
+    state: restarted

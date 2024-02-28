@@ -1,0 +1,13 @@
+---
+argument-specs:
+  main:
+    options:
+      proxies:
+        type: "list"
+        elements: "dict"
+        required: yes
+        description: List of filtered proxies
+      web_cert_email:
+        type: "str"
+        required: no
+        description: The e-mail to register the ACME acccount

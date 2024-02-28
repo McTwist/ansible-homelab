@@ -1,0 +1,35 @@
+---
+
+# Regular user
+- when: service == 'regular'
+  become: no
+  block:
+  - name: Bootstrap as user
+    vars:
+      deploy_user: "{{ ansible_user }}"
+    include_tasks: deploy_key.yml
+
+# Ansible managed
+- when: service == 'ansible'
+  vars:
+    ansible_become_pass: "{{ ansible_password }}"
+  become: yes
+  block:
+  - name: Bootstrap as ansible
+    include_tasks: ansible.yml
+
+# Router specific
+- when: service == 'router'
+  become: no
+  block:
+  - name: Bootstrap as router
+    include_tasks: router.yml
+
+# PiHole specific
+- when: "'pihole' in group_names"
+  become: no
+  block:
+  - name: Install guest agent
+    package:
+      name: qemu-guest-agent
+      state: present

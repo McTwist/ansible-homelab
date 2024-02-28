@@ -1,0 +1,11 @@
+{{ ansible_managed | comment(decoration="# ") }}
+
+{% for match in sshd_matches %}
+Match
+{%-  for type, name in match.conditions.items() %}
+ {{ type }} {{ [name] | flatten | join(",") }}
+{%-  endfor +%}
+{%   for option in match.options %}
+    {{ option }}
+{%   endfor %}
+{% endfor %}

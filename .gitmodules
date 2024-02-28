@@ -1,0 +1,3 @@
+[submodule "connection_plugins/lxc_ssh"]
+	path = connection_plugins/lxc_ssh
+	url = https://github.com/andreasscherbaum/ansible-lxc-ssh.git

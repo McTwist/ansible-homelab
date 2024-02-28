@@ -1,0 +1,34 @@
+---
+# Supported records:
+# - A
+# - AAAA
+# - CNAME
+# - PTR
+# - SRV
+# - TXT
+# - ADDRESS
+# Desired records:
+# - DNAME
+# - MX
+# - NS
+# - SOA
+# - SSHFD
+
+- name: LAN hostnames
+  template_config:
+    src: lan.j2
+    dest: /etc/dnsmasq.d/02-lan.conf
+    owner: root
+    group: root
+    mode: 0644
+    validate: pihole-FTL dnsmasq-test
+
+- name: LAN DNS
+  template_config:
+    src: dns.j2
+    dest: /etc/dnsmasq.d/07-lan-dns.conf
+    owner: root
+    group: root
+    mode: 0644
+    validate: pihole-FTL dnsmasq-test
+

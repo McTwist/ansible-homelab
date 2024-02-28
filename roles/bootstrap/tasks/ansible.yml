@@ -1,0 +1,51 @@
+---
+- name: Create ansible user
+  user:
+    state: present
+    name: ansible
+    password: "*"
+
+- name: Add staff group for Mac
+  user:
+    append: yes
+    state: present
+    name: ansible
+    group: staff
+    groups:
+    - admin
+    - com.apple.access_ssh
+  when: (ansible_os_family | lower) in ["darwin"]
+
+# Note: May need to have some way to update the key
+- vars:
+    deploy_user: ansible
+  include_tasks: deploy_key.yml
+
+- name: sshd
+  # Make it more secure, as there are no password
+  vars:
+    sshd_name: ansible
+    sshd_matches:
+    - conditions:
+        User: ansible
+        Address: "{{ hostvars[controller_host].ansible_host }}"
+      options:
+      - PasswordAuthentication no
+      - PubkeyAuthentication yes
+      - AllowTCPForwarding no
+      - X11Forwarding no
+  include_role:
+    name: sshd
+
+- name: Install sudo
+  package:
+    name: sudo
+    state: present
+
+- name: Sudo nopassword for ansible
+  community.general.sudoers:
+    state: present
+    commands: ALL
+    name: ansible
+    user: ansible
+  notify: Reload sshd

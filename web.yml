@@ -1,0 +1,186 @@
+---
+
+- name: Install web server
+  hosts: web
+  become: yes
+  gather_facts: yes
+  vars_files:
+  - web-vars.yml
+  vars:
+    php_config: "{{ web_domains | selectattr('php', 'defined') }}"
+    web_config: "{{ web_domains | selectattr('user', 'defined') }}"
+    db_config: "{{ web_domains | selectattr('db', 'defined') }}"
+    users: "{{ web_config | map(attribute='user') | unique }}"
+  tasks:
+
+  - name: Verify config
+    tags: always
+    verify_hosts:
+      unique_value:
+      - web_domains.name
+      - web_domains.db.name
+
+  - name: Create user home
+    tags: users
+    file:
+      path: "/var/www/users/{{ item }}"
+      state: directory
+      owner: root
+      group: root
+    with_items: "{{ users }}"
+
+  - name: Create groups
+    tags: users
+    group:
+      name: "{{ item }}"
+    with_items:
+    - "{{ users }}"
+    - sftp
+
+  - name: Create www-data group
+    tags: users
+    group:
+      name: www-data
+      system: yes
+
+  - name: Create www-data user
+    tags: users
+    user:
+      name: www-data
+      group: www-data
+      system: yes
+
+  - name: Create users
+    tags: users
+    no_log: yes
+    user:
+      name: "{{ item }}"
+      group: "{{ item }}"
+      groups:
+      - www-data
+      - sftp
+      # Update password only when we got access to it
+      password: "{{ omit if web_pass[item] is not defined else (web_pass[item] | password_hash) }}"
+      home: /var/www/users/{{ item }}
+    diff: no
+    ignore_errors: yes
+    with_items: "{{ users }}"
+
+  - name: Create user domain
+    tags: users
+    file:
+      state: directory
+      path: "/var/www/users/{{ item.user }}/{{ item.name }}"
+      owner: "{{ item.user }}"
+      group: "{{ item.user }}"
+      mode: '0755'
+    loop: "{{ web_config }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Create user tmp
+    tags: users
+    file:
+      state: directory
+      path: "/var/www/users/{{ item.user }}/tmp/{{ item.name }}"
+      owner: www-data
+      group: www-data
+      mode: '0777'
+    loop: "{{ web_config }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Set up MySQL
+    tags: mysql
+    no_log: yes
+    vars:
+      db: "{{ db_config + [web_phpmyadmin] }}"
+      users: "{{ db_pass | default([]) }}"
+    include_role:
+      name: mysql
+
+  - name: Set up PHP
+    tags: php
+    vars:
+      domains: "{{ php_config + [web_phpmyadmin] }}"
+    include_role:
+      name: php-fpm
+
+  - name: Set up Apache
+    tags: apache
+    vars:
+      domains: "{{ web_config }}"
+    include_role:
+      name: apache2
+
+  - name: Install phpmyadmin
+    package:
+      name: phpmyadmin
+      state: present
+
+  - name: Install goaccess
+    tags: goaccess
+    include_role:
+      name: goaccess
+
+  - name: Install statistics
+    tags: goaccess
+    copy:
+      src: statistics
+      dest: /var/www/users/www-data/
+      owner: www-data
+      group: www-data
+
+  - name: Set statistics permission
+    tags: goaccess
+    file:
+      path: /var/www/users/www-data/statistics/chkpassword
+      mode: '0755'
+
+  - name: Set fail.log permission
+    tags: goaccess
+    file:
+      state: touch
+      path: /var/www/users/www-data/statistics/fail.log
+      mode: '0666'
+      owner: www-data
+      group: www-data
+
+  - name: Secure down PAM
+    tags: security
+    # https://askubuntu.com/a/1404228
+    block:
+    - blockinfile:
+        path: /etc/pam.d/common-auth
+        block: "auth    required pam_faillock.so preauth audit silent deny=5 unlock_time=900"
+        insertafter: '# here are the per-package modules \(the "Primary" block\)'
+        marker: "# {mark} ANSIBLE MANAGED BLOCK INIT"
+    - vars:
+        line1: "auth    [default=die] pam_faillock.so authfail audit deny=5 unlock_time=900"
+        line2: "auth    sufficient pam_faillock.so authsucc audit deny=5 unlock_time=900"
+      blockinfile:
+        path: /etc/pam.d/common-auth
+        block: |
+          {{ line1 }}
+          {{ line2 }}
+        insertafter: "# here's the fallback if no module succeeds"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FALLBACK"
+    - blockinfile:
+        path: /etc/pam.d/common-account
+        block: "account required pam_faillock.so"
+        insertafter: '# end of pam-auth-update config'
+
+- name: Install proxy
+  tags: proxy
+  become: yes
+  gather_facts: yes
+  hosts: webproxy
+  vars_files: web-vars.yml
+  vars:
+    proxies: "{{ web_domains | selectattr('proxy', 'defined') }}"
+  tasks:
+
+  - name: Create proxy
+    include_role:
+      name: proxy
+

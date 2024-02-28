@@ -1,0 +1,11 @@
+---
+- name: Restart Syncthing Discovery server
+  service:
+    name: stdiscosrv
+    state: restarted
+  listen: discosrv
+- name: Restart Syncthing Relay server
+  service:
+    name: strelaysrv
+    state: restarted
+  listen: relaysrv

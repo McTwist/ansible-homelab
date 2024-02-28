@@ -1,0 +1,7 @@
+---
+- name: Restart fpm
+  service:
+    name: "php{{ item }}-fpm"
+    state: restarted
+  with_list: "{{ restart_php }}"
+  listen: "restart php"

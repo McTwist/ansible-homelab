@@ -1,0 +1,38 @@
+---
+- name: Config check
+  become: false
+  hosts: ansible
+  tags: always
+  tasks:
+  - name: Verify config
+    verify_hosts:
+      unique_value:
+      - dhcp_mac
+      - dhcp_ipv4
+      - dhcp_ipv6
+      - lxc_host
+      - dns.private
+      - dns.public
+      - nat.destination
+
+- name: Router
+  become: false
+  tags: router
+  hosts: router:!ignored
+  roles:
+  - role: router
+
+- name: PiHole
+  become: true
+  serial: 1
+  tags: pihole
+  hosts: pihole:!ignored
+  roles:
+  - role: pihole
+
+- name: Prometheus
+  become: true
+  tags: prometheus
+  hosts: prometheus
+  roles:
+  - role: prometheus

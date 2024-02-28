@@ -1,0 +1,27 @@
+---
+- name: Bootstrap
+  # Prepare variables to be used
+  vars_prompt:
+  - name: service
+    prompt: Type (regular, ansible, router)
+    private: no
+  - name: target
+    prompt: Target
+    private: no
+  - name: ansible_user
+    prompt: User
+    private: no
+    default: root
+  - name: ansible_password
+    prompt: Password
+    private: yes
+  # Lock to a target
+  hosts: "{{ target }}"
+  become: no
+  gather_facts: "{{ service == 'ansible' }}"
+  vars:
+    ansible_become_password: "{{ ansible_password }}"
+  tasks:
+  - name: Bootstrap role
+    include_role:
+      name: bootstrap

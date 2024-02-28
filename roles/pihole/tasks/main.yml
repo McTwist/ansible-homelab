@@ -1,0 +1,50 @@
+---
+# Remember to update the password for pihole
+# pihole -a -p
+- name: Install
+  tags:
+  - install
+  import_tasks: install.yml
+
+- name: Set config
+  block:
+
+  - name: Add adlist
+    tags:
+    - adlist
+    block:
+    - name: Flush table
+      command: pihole-FTL sqlite3 /etc/pihole/gravity.db "DELETE FROM gravity; DELETE FROM adlist;"
+    - name: Add adlist
+      command: pihole-FTL sqlite3 /etc/pihole/gravity.db "INSERT OR IGNORE INTO adlist (address, comment) VALUES ('{{ item.address | default(item) }}', '{{ item.comment | default('')}}');"
+      loop: "{{ pihole_adlists }}"
+  - name: Add domains
+    tags:
+    - adlist
+    block:
+
+    - name: Allowlist exact
+      command: "pihole -w {{ pihole_domains.allowlist.exact | join(' ') }}"
+    - name: Allowlist regex
+      command: "pihole --white-regex {{ pihole_domains.allowlist.regex | join(' ') }}"
+    - name: Denylist exact
+      command: "pihole -b {{ pihole_domains.denylist.exact | join(' ') }}"
+    - name: Denylist regex
+      command: "pihole -regex {{ pihole_domains.denylist.regex | join(' ') }}"
+
+  - name: Set local DNS
+    tags:
+    - dns
+    import_tasks: dns.yml
+    notify:
+    - Restart dnsmasq
+
+- name: Update
+  tags:
+  - update
+  command: pihole -up
+
+- name: Gravity
+  tags:
+  - gravity
+  command: pihole -g

@@ -1,0 +1,50 @@
+{% if clear is defined and clear %}
+delete nat
+{% endif %}
+{# Go through snat #}
+{% for rule in snat %}
+{# Rules #}
+{% 	if rule.description is defined %}
+set nat source rule {{ loop.index }} description "{{ rule.description }}"
+{% 	endif %}
+{# Outbound interface #}
+{% 	if rule['outbound-interface'] is defined %}
+set nat source rule {{ loop.index }} outbound-interface {{ rule['outbound-interface'] }}
+{% 	endif %}
+{# Source #}
+{% 	if rule.source is defined %}
+{% 		if rule.source.address is defined %}
+set nat source rule {{ loop.index }} source address {{ rule.source.address }}
+{% 		endif %}
+{% 		if rule.source.port is defined %}
+set nat source rule {{ loop.index }} source port {{ rule.source.port }}
+{% 		endif %}
+{% 	endif %}
+{# Translation #}
+{% 	if rule.translation is defined %}
+{% 		if rule.translation.address is defined %}
+set nat source rule {{ loop.index }} translation address {{ rule.translation.address }}
+{% 		endif %}
+{% 		if rule.translation.port is defined %}
+set nat source rule {{ loop.index }} translation port {{ rule.translation.port }}
+{% 		endif %}
+{% 	endif %}
+{% endfor %}
+{# Go through dnat #}
+{% for rule in dnat %}
+{# Rules #}
+{% 	if rule.description is defined %}
+set nat destination rule {{ loop.index }} description "{{ rule.description }}"
+{% 	endif %}
+{# Protocol #}
+set nat destination rule {{ loop.index }} protocol {{ rule.protocol | mandatory }}
+{# Inbound interface #}
+set nat destination rule {{ loop.index }} inbound-interface {{ router_interface.WAN }}
+{# Destination #}
+set nat destination rule {{ loop.index }} destination port {{ rule.destination | mandatory }}
+{# Translation #}
+set nat destination rule {{ loop.index }} translation address {{ rule.dhcp_ipv4 | mandatory }}
+{% 	if rule.translation is defined %}
+set nat destination rule {{ loop.index }} translation port {{ rule.translation }}
+{% 	endif %}
+{% endfor %}

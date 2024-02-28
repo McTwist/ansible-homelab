@@ -1,0 +1,29 @@
+{{ ansible_managed | comment(decoration="# ") }}
+{% set dns = hostvars.values() | selectattr('dns', 'defined') | flatten %}
+{% set private = dns | selectattr('dns.private', 'defined') | map(attribute='dns.private') | flatten %}
+{% set both = dns | selectattr('dns.both', 'defined') | map(attribute='dns.both') | flatten %}
+{% for record in private + both %}
+{%   if record.type == 'A' %}
+host-record={{ record.name | mandatory }},{{ record.a | mandatory }}
+{%-    if record.aaaa is defined -%}
+,{{ record.aaaa }}
+{%-    endif -%}
+,{{ record.ttl | default(3600) }}
+{%   elif record.type == 'AAAA' %}
+host-record={{ record.name | mandatory }}
+{%-    if record.a is defined -%}
+,{{ record.a }}
+{%-    endif -%}
+,{{ record.aaaa | mandatory }},{{ record.ttl | default(3600) }}
+{%   elif record.type == 'SRV' %}
+srv-host={{ record.name | mandatory }},{{ record.host | mandatory }},{{ record.port | mandatory }},{{ record.ttl | default(3600) }}
+{%   elif record.type == 'CNAME' %}
+cname={{ record.name | mandatory }},{{ record.cname | mandatory }},{{ record.ttl | default(3600) }}
+{%   elif record.type == 'ADDRESS' %}
+address=/{{ record.name | mandatory }}/{{ record.address | mandatory }}
+{%   elif record.type == 'TXT' %}
+txt-record={{ record.name | mandatory }},{{ [record.txt | mandatory] | flatten | join(',') }}
+{%   else %}
+{{ 0/0 }}
+{%   endif %}
+{% endfor %}

@@ -1,0 +1,53 @@
+{% if clear is defined and clear %}
+delete service {{ type }}
+{% endif %}
+{% for config in configs %}
+set service {{ type }} shared-network-name {{ config.name }} authoritative
+{%   if config['domain-name'] is defined %}
+set service {{ type }} shared-network-name {{ config.name }} domain-name {{ config['domain-name'] }}
+{%   endif %}
+{%   if config['domain-search'] is defined %}
+{%     for search in [config['domain-search']] | flatten %}
+set service {{ type }} shared-network-name {{ config.name }} domain-search {{ search }}
+{%     endfor %}
+{%   endif %}
+{# Name servers #}
+{%   if config['name-servers'] is defined %}
+{%     for ns in config['name-servers'] %}
+set service {{ type }} shared-network-name {{ config.name }} name-server {{ ns }}
+{%     endfor %}
+{%   endif %}
+{# Subnets #}
+{%   for subnet in config.subnets %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix | mandatory }} default-router {{ subnet['default-router'] | mandatory }}
+{%     if subnet['domain-name'] is defined %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} domain-name {{ subnet['domain-name'] }}
+{%     endif %}
+{%     if subnet['domain-search'] is defined %}
+{%       for search in [subnet['domain-search']] | flatten %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} domain-search {{ search }}
+{%       endfor %}
+{%     endif %}
+{%     if subnet['tftp-server'] is defined %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} tftp-server {{ subnet['tftp-server'] }}
+{%     endif %}
+{# Name servers #}
+{%     if subnet['name-servers'] is defined %}
+{%       for ns in subnet['name-servers'] %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} name-server {{ ns }}
+{%       endfor %}
+{%     endif %}
+{# Subnet ranges #}
+{%     for range in subnet.range %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} range {{ loop.index }} start {{ range.start }}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} range {{ loop.index }} stop {{ range.stop }}
+{%     endfor %}
+{# DHCP Reservation / Static Mapping #}
+{%     for hostname in hostvars %}
+{%       if hostvars[hostname].dhcp_mac is defined and hostvars[hostname].dhcp_ipv4 is defined %}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} static-mapping '{{ hostname }}' mac-address {{ hostvars[hostname].dhcp_mac }}
+set service {{ type }} shared-network-name {{ config.name }} subnet {{ subnet.prefix }} static-mapping '{{ hostname }}' ip-address {{ hostvars[hostname].dhcp_ipv4 }}
+{%       endif %}
+{%     endfor %}
+{%   endfor %}
+{% endfor %}

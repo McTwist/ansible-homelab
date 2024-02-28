@@ -1,0 +1,30 @@
+---
+# TODO: Change install procedures to avoid command
+- name: Retrieve certificate
+  tags: install
+  command: wget -O - https://deb.goaccess.io/gnugpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/goaccess.gpg >/dev/null
+  args:
+    creates: /usr/share/keyrings/goaccess.gpg
+- name: Add repository
+  tags: install
+  command: echo "deb [signed-by=/usr/share/keyrings/goaccess.gpg arch=$(dpkg --print-architecture)] https://deb.goaccess.io/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/goaccess.list
+  args:
+    creates: /etc/apt/sources.list.d/goaccess.list
+- name: Install goaccess
+  tags: install
+  package:
+    name: goaccess
+    state: present
+- name: Install update script
+  tags: install
+  copy:
+    src: goaccess.sh
+    dest: /usr/local/bin/goaccess.sh
+    mode: '0755'
+- name: Enable cronjob
+  tags: install
+  cron:
+    name: goaccess-update
+    user: www-data
+    job: /usr/local/bin/goaccess.sh
+    minute: "0"

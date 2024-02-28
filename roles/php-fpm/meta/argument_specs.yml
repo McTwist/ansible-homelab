@@ -1,0 +1,64 @@
+---
+argument-specs:
+  main:
+    options:
+      name:
+        type: "str"
+        required: yes
+      php:
+        type: "dict"
+        required: yes
+        options:
+          version:
+            type: "float"
+            required: yes
+          modules:
+            type: "list"
+            elements: "str"
+            required: no
+          pool:
+            type: "dict"
+            required: no
+            options: &pool
+              pm:
+                type: "str"
+                choices:
+                - static
+                - dynamic
+                - ondemand
+                required: no
+              max_children:
+                type: "int"
+                required: no
+              start_servers:
+                type: "int"
+                required: no
+              min_spare_servers:
+                type: "int"
+                required: no
+              max_spare_servers:
+                type: "int"
+                required: no
+              process_idle_timeout:
+                type: "int"
+                required: no
+              max_requests:
+                type: "int"
+                required: no
+              status_path:
+                type: "str"
+                required: no
+              memory_limit:
+                type: "str"
+                required: no
+      php_default_modules:
+        type: "list"
+        elements: "str"
+        required: yes
+      php_fpm_pool_defaults:
+        type: "dict"
+        required: no
+        options: *pool
+      www_path:
+        type: "str"
+        required: no

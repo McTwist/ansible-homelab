@@ -1,0 +1,16 @@
+---
+argument-specs:
+  main:
+    options:
+      service:
+        type: "str"
+        choices:
+        - regular
+        - ansible
+        - router
+        required: yes
+        description: What type of service
+      controller_host:
+        type: "str"
+        required: yes
+        description: The current host to control all hosts

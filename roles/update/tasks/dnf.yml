@@ -1,0 +1,8 @@
+---
+- name: dnf update
+  tags:
+  - update
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    autoremove: yes

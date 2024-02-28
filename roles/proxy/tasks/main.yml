@@ -1,0 +1,79 @@
+---
+
+- name: Install packages
+  tags: install
+  package:
+    name:
+    - nginx
+    - certbot
+    - "{{ 'python3-' if (ansible_pkg_mgr | lower) == 'apt' else '' }}certbot-nginx"
+    state: present
+
+- name: Install security SSL
+  tags: security
+  copy:
+    src: security.conf
+    dest: /etc/nginx/http.d/security.conf
+    owner: root
+    group: root
+
+- name: Make sure certbot runs once a day
+  tags: certbot
+  block:
+  - name: Enable systemd timer
+    systemd:
+      name: certbot.timer
+      state: started
+      enabled: yes
+    when: "'systemd' == ansible_service_mgr"
+  - name: Enable cronjob
+    cron:
+      name: certbot-renewal
+      job: /bin/bash -lc '/usr/local/bin/certbot -q renew'
+      minute: "0"
+      hour: "14"
+    when: "'openrc' == ansible_service_mgr"
+
+- name: Create ACME account
+  tags: certbot
+  command: /usr/local/bin/certbot -n register --agree-tos --email {{ web_cert_email }}
+  args:
+    # Avoid trying to register twice
+    creates: /etc/letsencrypt/accounts
+  when: web_cert_email is defined
+
+- name: Install certificates
+  tags: certbot
+  command: >-
+    /usr/local/bin/certbot -n --nginx certonly -d {{ item.name }}
+    {{ [item.alias | default([])] | flatten | product(['-d ']) | map('join') | join(" ") }}
+    {{ "--dry-run" if ansible_check_mode else "" }}
+  args:
+    creates: /etc/letsencrypt/live/{{ item.name }}
+  loop: "{{ proxies }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install configs
+  tags: configure
+  vars:
+    site: "{{ item }}"
+  template_config:
+    src: proxy.conf.j2
+    dest: /etc/nginx/http.d/{{ item.name }}.conf
+    owner: root
+    group: root
+    lstrip_blocks: yes
+    validate: nginx -t
+  loop: "{{ proxies }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Reload nginx
+  tags: reload
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+
+

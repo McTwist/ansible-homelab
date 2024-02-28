@@ -1,0 +1,6 @@
+---
+- name: apk update
+  tags:
+  - update
+  community.general.apk:
+    upgrade: yes

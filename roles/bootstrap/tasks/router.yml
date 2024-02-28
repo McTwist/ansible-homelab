@@ -1,0 +1,91 @@
+---
+# VyOS spec:
+# - Two bridges, no firewall, virtio, multiqueue
+# - Two cores
+# - >=1GB
+# - Serial port
+# Installation process:
+# User: vyos, Pass: vyos
+# 1. $ install image
+# 2. $ sudo dpkg-reconfigure console-data
+# 3. # set service ssh port 22
+# 4. # commit
+# Updating process:
+# 1. $ add system image https://downloads.vyos.io/rolling/current/amd64/vyos-rolling-latest.iso
+# 2. # set system image default-boot <tab>
+# 3. $ reboot
+- name: Create admin user
+  ignore_errors: true
+  vars:
+  - ansible_user: vyos
+  block:
+  - name: Set up user login
+    no_log: true
+    vyos_user:
+      name: "{{ ansible_user }}"
+      configured_password: "{{ ansible_password }}"
+      update_password: on_create
+    notify: Save router config
+  - name: Set up user key
+    vars:
+    - key_data: "{{ lookup('file', public_key) | split }}"
+    vyos_config:
+      lines:
+      - "set system login user {{ ansible_user }} authentication public-keys {{ key_data[2] }} type {{ key_data[0] }}"
+      - "set system login user {{ ansible_user }} authentication public-keys {{ key_data[2] }} key {{ key_data[1] }}"
+    notify: Save router config
+
+- name: Remove default user
+  no_log: true
+  vyos_user:
+    name: vyos
+    state: absent
+  notify: Save router config
+
+# # Disabled as it doesn't work as expected
+# - name: Set up keyboard
+#   tags:
+#   - keyboard
+#   become: true
+#   block:
+#   - debconf:
+#       name: console-data
+#       question: console-data/keymap/policy
+#       vtype: select
+#       value: Select keymap from arch list
+#   - debconf:
+#       name: console-data
+#       question: console-data/keymap/family
+#       vtype: select
+#       value: qwerty
+#   - debconf:
+#       name: console-data
+#       question: console-data/keymap/qwerty/layout
+#       vtype: select
+#       value: Swedish
+#   - debconf:
+#       name: console-data
+#       question: console-data/keymap/qwerty/swedish/variant
+#       vtype: select
+#       value: Standard
+#   - debconf:
+#       name: console-data
+#       question: console-data/keymap/qwerty/swedish/standard/keymap
+#       vtype: select
+#       value: Standard
+#   - shell: dpkg-reconfigure -f noninteractive console-data
+
+- name: Set host name
+  vyos.vyos.vyos_hostname:
+    config:
+      hostname: "{{ inventory_hostname }}"
+  notify: Save router config
+
+# # Note: Done automatically
+# - name: Set up serial terminal
+#   vyos_config:
+#     lines:
+#     - "set system console device ttySO speed 11520"
+
+
+

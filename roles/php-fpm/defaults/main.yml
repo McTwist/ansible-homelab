@@ -1,0 +1,29 @@
+---
+
+php_fpm_ini_options: []
+
+php_fpm_default_pool_enabled: false
+
+php_fpm_pool_defaults:
+  name: www-data
+  user: www-data
+  pm: dynamic
+  max_children: 5
+  start_servers: 2
+  min_spare_servers: 1
+  max_spare_servers: 3
+  process_idle_timeout: 15s
+  #status_path: /status
+  #memory_limit: 32M
+
+php_fpm_pools: []
+
+php_default_modules:
+- fpm
+- cli # fpm
+- common # fpm/cli
+- readline # cli
+- opcache # fpm/cli
+#- json # pre8.0
+
+www_path: /var/www/users

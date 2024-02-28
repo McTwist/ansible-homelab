@@ -1,0 +1,78 @@
+---
+
+- name: Install apache
+  tags:
+  - apache
+  - install
+  package:
+    name: apache2
+    state: present
+
+- name: Disable apache2 modules
+  tags: apache.modules
+  apache2_module:
+    name: "{{ item }}"
+    state: absent
+    warn_mpm_absent: no
+  with_items:
+  - mpm_itk
+  - mpm_prefork
+  - mpm_worker
+
+- name: Enable apache2 modules
+  tags:
+  - apache
+  - modules
+  apache2_module:
+    name: "{{ item }}"
+  with_items:
+  - mpm_event
+  - actions
+  - rewrite
+
+- name: Set up site config
+  tags:
+  - apache
+  - configure
+  vars:
+    site: "{{ item }}"
+  template_config:
+    src: site.conf.j2
+    dest: /etc/apache2/sites-enabled/{{ item.name }}.conf
+    owner: www-data
+    group: www-data
+    lstrip_blocks: yes
+    validate: apachectl -t
+  loop: "{{ domains }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Set up phpmyadmin
+  tags:
+  - apache
+  - phpmyadmin
+  template_config:
+    src: phpmyadmin.conf.j2
+    dest: /etc/apache2/conf-enabled/phpmyadmin.conf
+    owner: www-data
+    group: www-data
+    lstrip_blocks: yes
+    validate: apachectl -t
+
+- name: Set up statistics
+  tags:
+  - apache
+  - goaccess
+  template_config:
+    src: statistics.conf.j2
+    dest: /etc/apache2/conf-enabled/statistics.conf
+    owner: www-data
+    group: www-data
+    lstrip_blocks: yes
+    validate: apachectl -t
+
+- name: Reload apache
+  tags:
+  - apache
+  - reload
+  command: apachectl graceful

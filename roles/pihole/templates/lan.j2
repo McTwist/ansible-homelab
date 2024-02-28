@@ -1,0 +1,24 @@
+{{ ansible_managed | comment(decoration="# ") }}
+{% for hostname, host in hostvars | items %}
+{%   if host.dhcp_ipv4 is defined or host.dhcp_ipv6 is defined %}
+{# Host record #}
+host-record={{ hostname }}.{{ lan_domains.private }}
+
+{%-     if host.dhcp_ipv4 is defined -%}
+,{{ host.dhcp_ipv4 }}
+{%-     endif -%}
+
+{%-     if host.dhcp_ipv6 is defined -%}
+,{{ host.dhcp_ipv6 }}
+{%-     endif -%}
+
+,{{ host.dns_ttl | default(3600) }}
+{# Reverse lookup #}
+{%     if host.dhcp_ipv4 is defined %}
+ptr-record={{ host.dhcp_ipv4 | to_arpa }},{{ hostname }}
+{%     endif %}
+{%     if host.dhcp_ipv6 is defined %}
+ptr-record={{ host.dhcp_ipv6 | to_arpa }},{{ hostname }}
+{%     endif %}
+{%   endif %}
+{% endfor %}

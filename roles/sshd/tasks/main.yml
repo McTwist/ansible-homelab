@@ -1,0 +1,23 @@
+---
+- name: Check version
+  stat:
+    path: /etc/ssh/sshd_config.d
+  register: new_sshd
+
+- name: Add sshd_config.d/{{ sshd_name }}.conf
+  template:
+    src: sshd_config.conf.j2
+    dest: /etc/ssh/sshd_config.d/{{ sshd_name }}.conf
+    owner: root
+    mode: 0644
+  when: new_sshd.stat.exists
+  notify: Reload sshd
+
+# Handle older systems
+- name: Update sshd_config
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    block: "{{ lookup('template', 'sshd_config.conf.j2') }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ sshd_name }}"
+  when: not new_sshd.stat.exists
+  notify: Reload sshd

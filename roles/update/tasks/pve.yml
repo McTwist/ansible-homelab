@@ -1,0 +1,17 @@
+---
+- name: Remove subscription
+  replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    # https://johnscs.com/remove-proxmox51-subscription-notice/
+    regexp: "(Ext.Msg.show\\(\\{\\s+title: gettext\\('No valid sub)"
+    replace: 'void({ //\1'
+  notify:
+  - Restart pveproxy
+
+- name: Fix containers
+  replace:
+    path: /lib/systemd/system/lxcfs.service
+    regexp: "ExecStart=/usr/bin/lxcfs /var/lib/lxcfs"
+    replace: "ExecStart=/usr/bin/lxcfs -l /var/lib/lxcfs"
+  notify:
+  - Restart lxcfs

@@ -1,0 +1,9 @@
+test:
+  - first:
+      data: yes
+      more: data
+  - second:
+      data: no
+      maybe: data
+  - third:
+      data: space is awesome

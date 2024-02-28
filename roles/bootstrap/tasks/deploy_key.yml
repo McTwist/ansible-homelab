@@ -1,0 +1,9 @@
+---
+# Note: Would like to create a key if it does not exist, but
+# "ssh-keygen -t ed25519" for now...
+
+- name: Deploy SSH key
+  authorized_key:
+    state: present
+    user: "{{ deploy_user }}"
+    key: "{{ lookup('file', public_key) }}"
