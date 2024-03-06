@@ -6,6 +6,8 @@
   - include_tasks: "{{ ansible_pkg_mgr | lower }}.yml"
   # TODO: Find a better way to handle this
   - name: Check for services
+    no_log: yes
+    ignore_errors: yes
     service_facts:
     #when: "(ansible_os_family | lower) not in ['ansible', 'alpine']"
   - name: Make sure qemu-guest-agent have started
