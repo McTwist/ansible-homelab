@@ -1,6 +1,6 @@
 ---
 - name: Install Syncthing
-  hosts: pixel
+  hosts: syncthing
   gather_facts: yes
   become: yes
   tasks:
