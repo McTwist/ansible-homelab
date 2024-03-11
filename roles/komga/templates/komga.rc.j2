@@ -1,0 +1,15 @@
+#!/sbin/openrc-run
+{{ ansible_managed | comment(decoration='# ') }}
+
+command="/usr/bin/java"
+command_args="-jar -Xmx{{ java_max_memory }} /usr/local/bin/komga.jar --komga.config-dir='{{ komga_home }}'"
+command_user="komga"
+command_background="true"
+start_stop_daemon_args="--chdir {{ komga_home }}"
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log="{{ komga_home }}/ouput.log"
+error_log="{{ komga_home }}/error.log"
+
+depend() {
+	need net
+}

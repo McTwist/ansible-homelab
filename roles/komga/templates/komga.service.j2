@@ -1,0 +1,15 @@
+{{ ansible_managed | comment(decoration='# ') }}
+[Unit]
+Description=Komga Manga manager
+After=syslog.target network.target
+
+[Service]
+ExecStart=/usr/bin/java -jar -Xmx{{ java_max_memory }} /usr/local/bin/komga.jar --komga.config-dir="{{ komga_home }}"
+WorkingDirectory={{ komga_home }}
+TimeoutStopSec=10s
+SuccessExitStatus=0 143
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

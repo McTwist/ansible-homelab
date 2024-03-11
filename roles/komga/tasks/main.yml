@@ -1,0 +1,59 @@
+---
+- name: Install dependencies
+  block:
+  - package:
+      name: openjdk-{{ java_version }}-jre
+    when: ansible_pkg_mgr == "apt"
+  - package:
+      name: openjdk{{ java_version }}-jre
+    when: ansible_pkg_mgr == "apk"
+
+- name: Create group
+  group:
+    name: komga
+    system: yes
+- name: Create user
+  user:
+    name: komga
+    group: komga
+    system: yes
+- name: Create Komga folder
+  file:
+    state: directory
+    path: "{{ komga_home }}"
+    owner: komga
+    group: komga
+
+- name: Download Komga
+  get_url:
+    url: https://github.com/gotson/komga/releases/download/{{ komga_version }}/komga-{{ komga_version }}.jar
+    checksum: "sha256:https://github.com/gotson/komga/releases/download/{{ komga_version }}/checksums_sha256.txt"
+    dest: /usr/local/bin/komga.jar
+- name: Install Komga Service
+  block:
+  - name: Copy service file
+    template:
+      src: komga.service.j2
+      dest: /etc/systemd/system/komga.service
+    notify: restart
+    when: ansible_service_mgr == 'systemd'
+  - name: Copy init file
+    template:
+      src: komga.rc.j2
+      dest: /etc/init.d/komga
+      mode: '755'
+    notify: restart
+    when: ansible_service_mgr == 'openrc'
+- name: Enable service
+  service:
+    name: komga
+    enabled: yes
+
+- name: Upload config file
+  template:
+    src: application.yml.j2
+    dest: "{{ komga_home }}/application.yml"
+    owner: komga
+    group: komga
+  notify: restart
+

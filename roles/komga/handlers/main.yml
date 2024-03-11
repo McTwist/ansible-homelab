@@ -1,0 +1,6 @@
+---
+- name: Restart Komga server
+  service:
+    name: komga
+    state: restarted
+  listen: restart
