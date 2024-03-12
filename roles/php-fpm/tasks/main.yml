@@ -11,7 +11,7 @@
 # 9. Reload all existing php-fpm
 
 - name: Add PHP repository
-  tags: install
+  tags: always
   block:
   - name: Install prerequisities
     apt:
@@ -21,18 +21,17 @@
       repo: ppa:ondrej/php
 
 - name: Manage PHP
+  tags: always
   vars:
     php: "{{ domains | map(attribute='php.version') | unique }}"
     modules: "{{ domains | selectattr('php.modules', 'defined') | map(attribute='php') | get_php_modules(php_default_modules) }}"
     pools: "{{ domains | flatten_dict('php.pool', ['name', 'user', 'group', 'php.version']) }}"
   block:
   - name: Get installed packages
-    tags: always
     package_facts:
       manager: apt
 
   - name: Set old facts
-    tags: always
     vars:
       installed_modules: "{{ ansible_facts.packages.keys() | select('regex', '^php[\\d\\.]+-\\w+$') }}"
     set_fact:
@@ -42,7 +41,6 @@
       remove_modules: "{{ installed_modules | difference(modules) }}"
 
   - name: Install new PHP modules
-    tags: install
     apt:
       name: "{{ new_modules }}"
       state: present
@@ -61,7 +59,6 @@
 #   when: false
 
   - name: Create sess folder
-    tags: config
     vars:
       pool: "{{ php_fpm_pool_defaults | combine(item) }}"
     file:
@@ -75,7 +72,6 @@
       label: "{{ item.name }}"
 
   - name: Create upload folder
-    tags: config
     vars:
       pool: "{{ php_fpm_pool_defaults | combine(item) }}"
     file:
@@ -89,7 +85,6 @@
       label: "{{ item.name }}"
 
   - name: Configure config
-    tags: config
     vars:
       pool: "{{ php_fpm_pool_defaults | combine(item) }}"
       open_basedir:
@@ -110,10 +105,8 @@
   # First reload, first phase done
   - name: Restart fpm
     meta: flush_handlers
-    tags: always
 
   - name: Create php folder
-    tags: link
     file:
       state: directory
       dest: "/var/php"
@@ -121,7 +114,6 @@
       group: www-data
 
   - name: Update symbolic link for socket
-    tags: link
     file:
       state: link
       src: "/var/run/php/{{ item.name }}-{{ item.version }}.sock"
@@ -135,16 +127,13 @@
     notify: "restart php"
 
   - name: Get current PHP configs
-    tags: always
     php_facts:
 
   - name: Set new facts
-    tags: always
     set_fact:
       remove_config: "{{ ansible_facts.php_config | diff_config(pools, ['name', 'version']) }}"
 
   - name: Remove unused pools
-    tags: config
     file:
       path: "/etc/php/{{ item.version }}/fpm/pool.d/{{ item.name }}.conf"
       state: absent
@@ -154,7 +143,6 @@
     notify: "restart php"
 
   - name: Remove unused sockets
-    tags: reload
     file:
       path: "/var/php/{{ item.name }}.sock"
       state: absent
@@ -163,7 +151,6 @@
       label: "{{ item.name }}"
 
   - name: Remove unused PHP modules
-    tags: uninstall
     apt:
       name: "{{ remove_modules }}"
       state: absent
@@ -180,4 +167,3 @@
   # Second reload, second phase done
   - name: Restart fpm
     meta: flush_handlers
-    tags: always

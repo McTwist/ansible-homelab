@@ -1,12 +1,10 @@
 ---
 
 - name: Set up MySQL
+  tags: always
   block:
 
   - name: Install MySQL
-    tags:
-    - mysql
-    - install
     package:
       name:
       - mariadb-server
@@ -14,7 +12,6 @@
       state: present
 
   - name: Check .my.cnf
-    tags: mysql.conf
     stat:
       path: /root/.my.cnf
     register: my
@@ -27,7 +24,6 @@
       when: db_password is undefined
 
     - name: Create .my.cnf
-      tags: mysql.conf
       no_log: yes
       template:
         src: my.cnf.j2
@@ -38,26 +34,17 @@
       check_mode: no
 
   - name: Add databases
-    tags:
-    - mysql
-    - db
     mysql_db:
       name: "{{ db | map(attribute='db.name') | unique }}"
       collation: utf8mb4_general_ci
 
   - name: Remove all anonymous users
-    tags:
-    - mysql
-    - users
     mysql_user:
       name: ''
       host_all: yes
       state: absent
 
   - name: Create users
-    tags:
-    - mysql
-    - users
     mysql_user:
       name: "{{ item }}"
       password: "{{ omit if users[item] is not defined else users[item] }}"
@@ -65,9 +52,6 @@
     with_items: "{{ db | map(attribute='db.user') | unique }}"
 
   - name: Apply permission to databases
-    tags:
-    - mysql
-    - permission
     mysql_user:
       name: "{{ item.user }}"
       # Note: This might need some change if more special cases are needed

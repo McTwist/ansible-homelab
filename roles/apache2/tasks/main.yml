@@ -1,15 +1,13 @@
 ---
 
 - name: Install apache
-  tags:
-  - apache
-  - install
+  tags: always
   package:
     name: apache2
     state: present
 
 - name: Disable apache2 modules
-  tags: apache.modules
+  tags: always
   apache2_module:
     name: "{{ item }}"
     state: absent
@@ -20,9 +18,7 @@
   - mpm_worker
 
 - name: Enable apache2 modules
-  tags:
-  - apache
-  - modules
+  tags: always
   apache2_module:
     name: "{{ item }}"
   with_items:
@@ -31,9 +27,7 @@
   - rewrite
 
 - name: Set up site config
-  tags:
-  - apache
-  - configure
+  tags: always
   vars:
     site: "{{ item }}"
   template_config:
@@ -48,9 +42,7 @@
     label: "{{ item.name }}"
 
 - name: Set up phpmyadmin
-  tags:
-  - apache
-  - phpmyadmin
+  tags: always
   template_config:
     src: phpmyadmin.conf.j2
     dest: /etc/apache2/conf-enabled/phpmyadmin.conf
@@ -60,9 +52,7 @@
     validate: apachectl -t
 
 - name: Set up statistics
-  tags:
-  - apache
-  - goaccess
+  tags: always
   template_config:
     src: statistics.conf.j2
     dest: /etc/apache2/conf-enabled/statistics.conf
@@ -72,7 +62,5 @@
     validate: apachectl -t
 
 - name: Reload apache
-  tags:
-  - apache
-  - reload
+  tags: always
   command: apachectl graceful

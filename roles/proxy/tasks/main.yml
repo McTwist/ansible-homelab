@@ -1,7 +1,7 @@
 ---
 
 - name: Install packages
-  tags: install
+  tags: always
   package:
     name:
     - nginx
@@ -10,7 +10,7 @@
     state: present
 
 - name: Install security SSL
-  tags: security
+  tags: always
   copy:
     src: security.conf
     dest: /etc/nginx/http.d/security.conf
@@ -18,7 +18,7 @@
     group: root
 
 - name: Make sure certbot runs once a day
-  tags: certbot
+  tags: always
   block:
   - name: Enable systemd timer
     systemd:
@@ -29,23 +29,23 @@
   - name: Enable cronjob
     cron:
       name: certbot-renewal
-      job: /bin/bash -lc '/usr/local/bin/certbot -q renew'
+      job: /bin/bash -lc '/usr/bin/certbot -q renew'
       minute: "0"
       hour: "14"
     when: "'openrc' == ansible_service_mgr"
 
 - name: Create ACME account
-  tags: certbot
-  command: /usr/local/bin/certbot -n register --agree-tos --email {{ web_cert_email }}
+  tags: always
+  command: /usr/bin/certbot -n register --agree-tos --email {{ web_cert_email }}
   args:
     # Avoid trying to register twice
     creates: /etc/letsencrypt/accounts
   when: web_cert_email is defined
 
 - name: Install certificates
-  tags: certbot
+  tags: always
   command: >-
-    /usr/local/bin/certbot -n --nginx certonly -d {{ item.name }}
+    /usr/bin/certbot -n --nginx certonly -d {{ item.name }}
     {{ [item.alias | default([])] | flatten | product(['-d ']) | map('join') | join(" ") }}
     {{ "--dry-run" if ansible_check_mode else "" }}
   args:
@@ -55,7 +55,7 @@
     label: "{{ item.name }}"
 
 - name: Install configs
-  tags: configure
+  tags: always
   vars:
     site: "{{ item }}"
   template_config:
@@ -70,7 +70,7 @@
     label: "{{ item.name }}"
 
 - name: Reload nginx
-  tags: reload
+  tags: always
   service:
     name: nginx
     state: restarted
