@@ -21,7 +21,7 @@ class ActionModule(ActionBase):
 		module_args = self._task.args.copy()
 		check_mode = self._play_context.check_mode
 
-		hostvars = task_vars["hostvars"]
+		hostvars = task_vars['hostvars']
 
 		ret = dict(changed=False)
 
@@ -33,11 +33,10 @@ class ActionModule(ActionBase):
 			return _fail(ret, "Require data argument")
 		if not isinstance(module_args['data'], str):
 			return _fail(ret, "Require data argument to be a str")
-		ret_var = module_args.get('var', 'vyos_fact')
 		url = module_args.get('url', f"https://{task_vars['ansible_host']}")
 
 		uri_return = self._execute_module(
-			module_name='uri',
+			module_name='ansible.builtin.uri',
 			module_args=dict(
 				method='POST',
 				url=f"{url}/{module_args['method']}",
@@ -53,16 +52,17 @@ class ActionModule(ActionBase):
 			ret['skipped'] = True
 			return ret
 
+		if uri_return['status'] == -1:
+			return _fail(ret, uri_return['msg'])
+
 		result = json.loads(uri_return['content'])
 		if not result['success']:
-			return fail(result['error'])
+			return _fail(ret, result['error'])
 
 		data = result['data']
 
 		if data is not None:
-			ret['ansible_facts'] = {
-				ret_var: data
-			}
+			ret['response'] = data
 
 		ret['changed'] = True
 		ret['status'] = uri_return['status']

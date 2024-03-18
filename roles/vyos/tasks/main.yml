@@ -1,0 +1,207 @@
+---
+- name: Set system
+  tags: system
+  vars:
+    configs: "{{ router_vyos_system }}"
+    type: system
+  vyos.vyos.vyos_config:
+    src: vyos_config.j2
+    comment: Update system
+  notify: Save vyos config
+  when: router_vyos_system is defined
+
+- name: Set interfaces
+  tags: interface
+  vyos.vyos.vyos_l3_interfaces:
+    config: "{{ router_vyos_interfaces }}"
+    state: overridden
+  notify: Save vyos configv
+  when: router_vyos_interfaces is defined
+
+- name: Set services
+  tags: service
+  vars:
+    configs: "{{ router_vyos_services }}"
+    type: service
+  vyos.vyos.vyos_config:
+    src: vyos_config.j2
+    comment: Update services
+  notify: Save vyos config
+  when: router_vyos_services is defined
+
+- name: DHCP
+  tags: dhcp
+  vyos_configure:
+    path: service dhcp-server
+    key: "{{ router_vyos_key }}"
+    data: "{{ router_vyos_dhcpv4 }}"
+  notify: Save vyos config
+  when: router_vyos_dhcpv4 is defined
+
+- name: NAT
+  tags: nat
+  vyos_configure:
+    path: nat
+    key: "{{ router_vyos_key }}"
+    data: "{{ router_vyos_nat }}"
+  notify: Save vyos config
+  when: router_vyos_nat is defined
+
+- name: Firewall
+  tags: firewall
+  vyos_configure:
+    path: firewall
+    key: "{{ router_vyos_key }}"
+    data: "{{ router_vyos_firewall }}"
+  notify: Save vyos config
+  when: router_vyos_firewall is defined
+
+- name: Containers
+  tags: container
+  vyos_configure:
+    path: container
+    key: "{{ router_vyos_key }}"
+    data: "{{ router_vyos_containers }}"
+  notify: Save vyos config
+  when: router_vyos_containers is defined
+
+# TODO: Remove these whenever the whole role is complete
+#- name: Set config
+#  block:
+  # - name: Set system
+  #   tags: system
+  #   vars:
+  #     configs: "{{ router_system }}"
+  #     type: system
+  #   vyos_config:
+  #     src: vyos_config.j2
+  #     comment: Update system
+  #   notify: Save vyos config
+  #   when: router_system is defined
+
+  # - name: Set interfaces
+  #   tags: interface
+  #   vyos_l3_interfaces:
+  #     config: "{{ router_interfaces }}"
+  #     state: overridden
+  #   notify: Save vyos configv
+  #   when: router_interfaces is defined
+
+  # - name: Set services
+  #   tags: service
+  #   vars:
+  #     configs: "{{ router_services }}"
+  #     type: service
+  #   vyos_config:
+  #     src: vyos_config.j2
+  #     comment: Update services
+  #   notify: Save vyos config
+  #   when: router_services is defined
+
+  # - name: Set NAT
+  #   tags: nat
+  #   #vars:
+  #   #  dnat: "{{ hostvars.values() | selectattr('nat', 'defined') | nat_combine }}"
+  #   #  snat: "{{ router_snat | default([]) }}"
+  #   #  clear: yes
+  #   #vyos_config:
+  #   #  src: nat.cmd.j2
+  #   #  match: none
+  #   #  comment: Update nat
+  #   vars:
+  #     nat:
+  #       destination: "{{ hostvars.values() | selectattr('nat', 'defined') | nat_combine }}"
+  #       source: "{{ router_snat | default([]) }}"
+  #   vyos_configure:
+  #     path: nat
+  #     key: "{{ router_key }}"
+  #     data: "{{ nat | vyos_nat(router_interface.WAN) }}"
+  #   notify: Save vyos config
+
+  # - name: Set firewall
+  #   tags: firewall
+  #   #vars:
+  #   #  chunk_size: 1000
+  #   vars:
+  #     firewall:
+  #       groups: "{{ router_firewall_config | default(omit) }}"
+  #       rules: "{{ router_firewall_rules | default(omit) }}"
+  #       interfaces: "{{ router_firewall_interfaces | default(omit) }}"
+  #   vyos_configure:
+  #     path: firewall
+  #     key: "{{ router_key }}"
+  #     data: "{{ firewall | vyos_firewall }}"
+  #   notify: Save vyos config
+  #   #block:
+
+  #   # - name: Clear firewall config
+  #   #   tags: firewall-config
+  #   #   vars:
+  #   #     configs: []
+  #   #     type: firewall
+  #   #     clear: yes
+  #   #   vyos_config:
+  #   #     src: vyos_config.j2
+  #   #     match: none
+
+  #   #- name: Set firewall config
+  #   #  #vars:
+  #   #  #  ansible_command_timeout: 300
+  #   #  tags: firewall-config
+  #   #  vyos_firewall_global:
+  #   #    config: "{{ router_firewall_config }}"
+  #   #    state: replaced
+  #   #  when: router_firewall_config is defined
+
+  #   #- name: Set firewall rules
+  #   #  tags: firewall-rules
+  #   #  vyos_firewall_rules:
+  #   #    config: "{{ router_firewall_rules }}"
+  #   #    state: overridden
+  #   #  when: router_firewall_rules is defined
+
+  #   #- name: Set firewall interfaces
+  #   #  tags: firewall-interfaces
+  #   #  # Too old for the current system
+  #   #  # vyos_firewall_interfaces:
+  #   #  #   config: "{{ router_firewall_interface }}"
+  #   #  #   state: overridden
+  #   #  vars:
+  #   #    configs: "{{ router_firewall_interfaces }}"
+  #   #    type: firewall interface
+  #   #    clear: yes
+  #   #  vyos_config:
+  #   #    src: vyos_config.j2
+  #   #    match: none
+  #   #    comment: Update firewall interfaces
+  #   #  when: router_firewall_interfaces is defined
+
+  # - name: Set containers
+  #   tags: container
+  #   vars:
+  #     configs: "{{ router_containers }}"
+  #     type: container
+  #     clear: yes
+  #   vyos_config:
+  #     src: vyos_config.j2
+  #     match: none
+  #     comment: Update containers
+  #   notify: Save vyos config
+  #   when: router_containers is defined
+
+  # - name: Set DHCP
+  #   tags: dhcp
+  #   #vars:
+  #   #  configs: "{{ router_dhcpv4 }}"
+  #   #  type: dhcp-server
+  #   #  clear: yes
+  #   #vyos_config:
+  #   #  src: dhcp.cmd.j2
+  #   #  match: none
+  #   #  comment: Update DHCP
+  #   vyos_configure:
+  #     path: service dhcp-server
+  #     key: "{{ router_key }}"
+  #     data: "{{ router_dhcpv4 | vyos_dhcp(hostvars) }}"
+  #   notify: Save vyos config
+  #   when: router_dhcpv4 is defined

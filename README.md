@@ -90,3 +90,4 @@ A list containing all roles with a brief explaination of what they do.
 - [sshd](roles/sshd): Configure sshd.
 - [syncthing](roles/syncthing): Set up Syncthing Discovery and Relay services.
 - [update](roles/update): Updates hosts with newest packages.
+- [vyos](roles/vyos): Set up a VyOS instance with DHCP, NAT and firewall.

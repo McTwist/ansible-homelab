@@ -43,7 +43,7 @@ set nat destination rule {{ loop.index }} inbound-interface {{ router_interface.
 {# Destination #}
 set nat destination rule {{ loop.index }} destination port {{ rule.destination | mandatory }}
 {# Translation #}
-set nat destination rule {{ loop.index }} translation address {{ rule.dhcp_ipv4 | mandatory }}
+set nat destination rule {{ loop.index }} translation address {{ rule.address | mandatory }}
 {% 	if rule.translation is defined %}
 set nat destination rule {{ loop.index }} translation port {{ rule.translation }}
 {% 	endif %}
