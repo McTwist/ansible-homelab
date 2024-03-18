@@ -15,7 +15,7 @@
 
 __metaclass__ = type
 
-from ansible.plugins.action import ActionBase, template
+from ansible.plugins.action import ActionBase
 
 def _fail(ret, msg):
 	ret['failed'] = True
@@ -44,7 +44,7 @@ class ActionModule(ActionBase):
 			# Note: Not the best name, but it will always be removed anyway
 			bak_file = f"{module_args['dest']}.bak~"
 			backup_return = self._execute_module(
-				module_name='copy',
+				module_name='ansible.builtin.copy',
 				module_args=dict(
 					src=module_args['dest'],
 					dest=bak_file,
@@ -53,7 +53,7 @@ class ActionModule(ActionBase):
 
 		self._task.args.pop('validate')
 
-		template_return = template.ActionModule(
+		template_return = self._shared_loader_obj.action_loader.get("ansible.builtin.template",
 			self._task, self._connection, self._play_context, self._loader,
 			self._templar, self._shared_loader_obj).run(tmp, task_vars)
 
@@ -70,7 +70,7 @@ class ActionModule(ActionBase):
 					self._restore_config(tmp, task_vars, bak_file, module_args['dest'])
 				else:
 					self._execute_module(
-						module_name='file',
+						module_name='ansible.builtin.file',
 						module_args=dict(
 							path=module_args['dest'],
 							state='absent'
@@ -88,7 +88,7 @@ class ActionModule(ActionBase):
 	def _restore_config(self, tmp, task_vars, bak_file, dest):
 		# Note: Ignore if it succeeded or not
 		self._execute_module(
-			module_name='copy',
+			module_name='ansible.builtin.copy',
 			module_args=dict(
 				src=bak_file,
 				dest=dest,
@@ -98,7 +98,7 @@ class ActionModule(ActionBase):
 
 	def _remove_backup(self, tmp, task_vars, bak_file):
 		self._execute_module(
-			module_name='file',
+			module_name='ansible.builtin.file',
 			module_args=dict(
 				path=bak_file,
 				state='absent'
