@@ -56,6 +56,59 @@ class FilterModule:
 								members.append(member['address'])
 						gro[network_group['name']]['address'] = members
 		if 'rules' in config:
+			# TODO: Restructure to fit the new system better
+			for rule_set in config['rules']:
+				if rule_set['afi'] == 'ipv4':
+					if 'ipv4' not in ret:
+						ret['ipv4'] = dict()
+					afi = ret['ipv4']
+				elif rule_set['afi'] == 'ipv6':
+					if 'ipv6' not in ret:
+						ret['ipv6'] = dict()
+					afi = ret['ipv6']
+				if 'name' not in afi:
+					afi['name'] = dict()
+				names = afi['name']
+				for rule in rule_set['rule_sets']:
+					if rule['name'] in ['forward', 'input', 'output']:
+						filt = dict()
+						afi[rule['name']] = dict(filter=filt)
+						filt['default-action'] = rule['default_action']
+						rul = dict()
+						for old_rule in rule['rules'] or []:
+							new_rule = dict()
+							rul[old_rule['number']] = new_rule
+							new_rule['action'] = old_rule['action']
+							new_rule['jump-target'] = old_rule['jump_target']
+							if 'inbound_interface' in old_rule:
+								new_rule['inbound-interface'] = dict(name=old_rule['inbound_interface'])
+							if 'outbound_interface' in old_rule:
+								new_rule['outbound-interface'] = dict(name=old_rule['outbound_interface'])
+						if rul:
+							filt['rule'] = rul
+					else:
+						name = names[rule['name']] = dict()
+						name['description'] = rule['description']
+						name['default-action'] = rule['default_action']
+						rul = dict()
+						for old_rule in rule['rules'] or []:
+							new_rule = dict()
+							rul[old_rule['number']] = new_rule
+							new_rule['action'] = old_rule['action']
+							for gr, v in old_rule.items():
+								if gr in ['source', 'destination']:
+									gro = dict()
+									new_rule[gr] = dict(group=gro)
+									if 'address_group' in v['group']:
+										gro['address-group'] = v['group']['address_group']
+									if 'network_group' in v['group']:
+										gro['network-group'] = v['group']['network_group']
+								elif gr == 'state':
+									if v['new']:
+										new_rule['state'] = 'new'
+						if rul:
+							name['rule'] = rul
+			"""
 			for rule_set in config['rules']:
 				if rule_set['afi'] == 'ipv4':
 					if 'name' not in ret:
@@ -87,10 +140,13 @@ class FilterModule:
 									new_rule['state'] = dict(new='enable')
 					if rul:
 						name['rule'] = rul
-		if 'interfaces' in config:
-			ret['interface'] = dict()
-			for inter in config['interfaces']:
-				ret['interface'] = ret['interface'] | inter
+			"""
+		#if 'interfaces' in config:
+		#	ret['interface'] = dict()
+		#	for inter in config['interfaces']:
+		#		ret['interface'] = ret['interface'] | inter
+		#if 'forward' in config:
+		#	ret['forward'] = deepcopy(config['forward'])
 		return ret
 	def nat(self, config: dict, inbound_interface : str) -> dict:
 		"""
@@ -106,7 +162,9 @@ class FilterModule:
 				# destination -> inbound
 				rule = {
 					'protocol': destination['protocol'],
-					'inbound-interface': inbound_interface,
+					'inbound-interface': {
+						'name': inbound_interface
+					},
 					'destination': dict(port=destination['destination']),
 					'translation': dict(address=destination['address'])
 				}
@@ -141,26 +199,32 @@ class FilterModule:
 		ret = {'shared-network-name': shared}
 		for conf in config:
 			subnets = dict()
+			option = dict()
 			server = dict(
 				authoritative={},
+				option=option,
 				subnet=subnets)
 			shared[conf['name']] = server
 			if 'domain-name' in conf:
-				server['domain-name'] = conf['domain-name']
+				option['domain-name'] = conf['domain-name']
 			if 'domain-search' in conf:
 				if not isinstance(conf['domain-search'], list):
 					conf['domain-search'] = [conf['domain-search']]
-				server['domain-search'] = [search for search in conf['domain-search']]
+				option['domain-search'] = [search for search in conf['domain-search']]
 			if 'name-servers' in conf:
-				server['name-server'] = [ns for ns in conf['name-servers']]
+				option['name-server'] = [ns for ns in conf['name-servers']]
+			sid = 1
 			for subnet in conf['subnets']:
 				ran = dict()
 				static = dict()
 				sub = dict()
 				subnets[subnet['prefix']] = {
-					'default-router': subnet['default-router'],
+					'option': {
+						'default-router': subnet['default-router']
+					},
 					'range': ran,
-					'static-mapping': static
+					'static-mapping': static,
+					'subnet-id': sid
 				}
 				index = 1
 				for rang in subnet['range']:
@@ -171,9 +235,10 @@ class FilterModule:
 				for hostname, host in hostvars.items():
 					if 'dhcp_mac' in host and 'dhcp_ipv4' in host:
 						static[hostname] = {
-							'mac-address': host['dhcp_mac'],
+							'mac': host['dhcp_mac'],
 							'ip-address': host['dhcp_ipv4']
 						}
+				sid += 1
 		return ret
 	def nat_combine(self, config : list[dict]):
 		"""

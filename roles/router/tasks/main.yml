@@ -13,7 +13,8 @@
     firewall:
       groups: "{{ router_firewall_config | default(omit) }}"
       rules: "{{ router_firewall_rules | default(omit) }}"
-      interfaces: "{{ router_firewall_interfaces | default(omit) }}"
+      #interfaces: "{{ router_firewall_interfaces | default(omit) }}"
+      #forward: "{{ router_firewall_forward | default(omit) }}"
     router_vyos_firewall: "{{ firewall | vyos_firewall }}"
     router_vyos_firewall_config: "{{ router_firewall_config }}"
     router_vyos_firewall_rules: "{{ router_firewall_rules }}"
