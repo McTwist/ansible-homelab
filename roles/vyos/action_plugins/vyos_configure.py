@@ -43,7 +43,6 @@ def adiff(a, b, path=[]):
 	elif isinstance(a, dict):
 		r = {}
 		for k, v in a.items():
-			k = str(k)
 			if k in b:
 				rr = adiff(v, b[k], path + [k])
 				if rr:
@@ -150,11 +149,22 @@ class ActionModule(ActionBase):
 				delete_conf = adiff(current, data)
 				set_conf = adiff(data, current)
 				# TODO: Verify the differences
-				dif = recursive_diff(current, data)
+				"""dif = recursive_diff(current, data)
 				if dif:
-					if (adiff(dif[0], delete_conf) or adiff(delete_conf, dif[0]) or
-						adiff(dif[1], set_conf) or adiff(set_conf, dif[1])):
-						return _fail(ret, "Invalid difference, revise implementation")
+					dif2 = (adiff(dif[0], delete_conf), adiff(delete_conf, dif[0]),
+						adiff(dif[1], set_conf), adiff(set_conf, dif[1]))
+					if any(dif2):
+						ret['data'] = data
+						ret['current'] = current
+						ret['delete'] = delete_conf
+						ret['set'] = set_conf
+						ret['dif0'] = dif[0]
+						ret['dif1'] = dif[1]
+						ret['d0'] = dif2[0]
+						ret['0d'] = dif2[1]
+						ret['s1'] = dif2[2]
+						ret['1s'] = dif2[3]
+						return _fail(ret, "Invalid difference, revise implementation")"""
 			# NOTE: These two will not work with --diff, disable it for now
 			case "merged":
 				self._task.diff = False
