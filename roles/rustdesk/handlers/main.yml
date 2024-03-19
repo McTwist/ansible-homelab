@@ -1,0 +1,11 @@
+---
+- name: Restart Rustdeck
+  service:
+    name: hbbr
+    state: restarted
+  listen: restart
+- name: Restart Rustdeck
+  service:
+    name: hbbs
+    state: restarted
+  listen: restart

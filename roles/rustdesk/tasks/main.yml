@@ -1,0 +1,79 @@
+---
+- name: Install dependencies
+  package:
+    name:
+    - unzip
+    - tar
+
+- name: Create rustdesk group
+  group:
+    name: rustdesk
+    system: yes
+- name: Create rustdesk user
+  user:
+    name: rustdesk
+    group: rustdesk
+    system: yes
+- name: Create Rustdesk folder
+  file:
+    state: directory
+    path: "{{ rustdesk_home }}"
+    owner: rustdesk
+    group: rustdesk
+
+- name: Download Rustdesk
+  get_url:
+    url: https://github.com/rustdesk/rustdesk-server/releases/download/1.1.10-3/rustdesk-server-linux-amd64.zip
+    dest: /tmp/rustdesk.tar.gz
+- name: Unpack Rustdesk
+  unarchive:
+    remote_src: yes
+    src: /tmp/rustdesk.tar.gz
+    dest: /tmp
+- name: Install Rustdesk
+  copy:
+    remote_src: yes
+    directory_mode: yes
+    src: /tmp/amd64/
+    dest: /usr/local/bin/
+    mode: '755'
+
+- name: Install Rustdesk Relay Service
+  block:
+  - name: Copy service file
+    template:
+      src: hbbr.service.j2
+      dest: /etc/systemd/system/hbbr.service
+    notify: restart
+    when: "'systemd' == ansible_service_mgr"
+  - name: Copy init file
+    template:
+      src: hbbr.rc.j2
+      dest: /etc/init.d/hbbr
+      mode: '755'
+    notify: restart
+    when: "'openrc' == ansible_service_mgr"
+  - name: Enable service
+    service:
+      name: hbbr
+      enabled: yes
+
+- name: Install Rustdesk ID Server Service
+  block:
+  - name: Copy service file
+    template:
+      src: hbbs.service.j2
+      dest: /etc/systemd/system/hbbs.service
+    notify: restart
+    when: "'systemd' == ansible_service_mgr"
+  - name: Copy init file
+    template:
+      src: hbbs.rc.j2
+      dest: /etc/init.d/hbbs
+      mode: '755'
+    notify: restart
+    when: "'openrc' == ansible_service_mgr"
+  - name: Enable service
+    service:
+      name: hbbs
+      enabled: yes

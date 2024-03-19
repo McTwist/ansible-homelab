@@ -1,0 +1,13 @@
+{{ ansible_managed | comment(decoration='# ') }}
+[Unit]
+Description=Rustdesk Relay Server
+After=syslog.target network.target
+
+[Service]
+ExecStart=/usr/local/bin/hbbr
+WorkingDirectory={{ rustdesk_home }}
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

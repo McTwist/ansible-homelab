@@ -1,0 +1,15 @@
+#!/sbin/openrc-run
+{{ ansible_managed | comment(decoration='# ') }}
+
+command="/usr/local/bin/hbbs"
+command_args="-r {{ rustdesk_relay_server }}"
+command_user="rustdesk"
+command_background="true"
+start_stop_daemon_args="--chdir {{ rustdesk_home }}"
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log="{{ rustdesk_home }}/output_s.log"
+error_log="{{ rustdesk_home }}/error_s.log"
+
+depend() {
+	need net
+}

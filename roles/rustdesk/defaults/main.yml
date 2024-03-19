@@ -1,0 +1,3 @@
+---
+rustdesk_home: /var/lib/rustdesk
+rustdesk_relay_server: "{{ dhcp_ipv4 }}"

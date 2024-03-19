@@ -17,7 +17,8 @@ For config there is `ansible.cfg` which will modify some of the default behavior
 - [bootstrap](bootstrap.yml): Connect and set up the host specified. Interactive.
 - [komga](komga.yml): Install and configure Komga.
 - [network](network.yml): Configure network services like DHCP, DNS and Prometheus. Has tags to specify which type of service to update. Uses VyOS and PiHole. Variables used are specified in host variables.
-- [syncthing](syncthing.yml): 
+- [rustdesk](rustdesk.yml): Install Rustdesk ID and Relay services.
+- [syncthing](syncthing.yml): Install and configure Syncthing Discovery and Relay services.
 - [update](update.yml): Updates each host.
 - [web](web.yml): Install web stack with users, domains, and php. Will keep all data, but make sure that the state is actually used is only running.
 
@@ -87,6 +88,7 @@ A list containing all roles with a brief explaination of what they do.
 - [prometheus](roles/prometheus): Set up prometheus hosts.
 - [proxy](roles/proxy): Set up proxy for web serviecs.
 - [router](roles/router): Set up a router with DHCP, NAT and firewall.
+- [rustdesk](roles/rustdesk): Set up Rustdesk ID and Relay services.
 - [sshd](roles/sshd): Configure sshd.
 - [syncthing](roles/syncthing): Set up Syncthing Discovery and Relay services.
 - [update](roles/update): Updates hosts with newest packages.
