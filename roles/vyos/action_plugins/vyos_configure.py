@@ -73,7 +73,7 @@ def create_api_delete(pre: list, prev: dict, delete: dict) -> list[dict]:
 		if isinstance(delete1, list):
 			for v in delete1:
 				for vv in kept1:
-					rr = remove_path(v, vv)
+					rr = remove_path(v, vv, path)
 					if rr:
 						cmd.extend(rr)
 						break
@@ -187,7 +187,7 @@ class ActionModule(ActionBase):
 				if 'failed' in update_ret and update_ret['failed']:
 					return _fail(ret, update_ret['msg'])
 
-		ret['changed'] = delete_conf or set_conf
+		ret['changed'] = bool(delete_conf or set_conf)
 		if diff_mode and ret['changed']:
 			ret['diff'] = [
 				dict(
