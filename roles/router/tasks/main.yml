@@ -16,9 +16,9 @@
       #interfaces: "{{ router_firewall_interfaces | default(omit) }}"
       #forward: "{{ router_firewall_forward | default(omit) }}"
     router_vyos_firewall: "{{ firewall | vyos_firewall }}"
-    router_vyos_firewall_config: "{{ router_firewall_config }}"
-    router_vyos_firewall_rules: "{{ router_firewall_rules }}"
-    router_vyos_firewall_interfaces: "{{ router_firewall_interfaces }}"
+    #router_vyos_firewall_config: "{{ router_firewall_config }}"
+    #router_vyos_firewall_rules: "{{ router_firewall_rules }}"
+    #router_vyos_firewall_interfaces: "{{ router_firewall_interfaces }}"
     router_vyos_containers: "{{ router_containers }}"
   import_role:
     name: vyos
