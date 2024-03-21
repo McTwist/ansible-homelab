@@ -21,11 +21,14 @@
 - name: Set services
   tags: service
   vars:
-    configs: "{{ router_vyos_services }}"
-    type: service
+    configs: "{{ item.value }}"
+    type: service {{ item.key }}
   vyos.vyos.vyos_config:
     src: vyos_config.j2
-    comment: Update services
+    comment: Update service {{ item.key }}
+  loop: "{{ router_vyos_services | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
   notify: Save vyos config
   when: router_vyos_services is defined
 
