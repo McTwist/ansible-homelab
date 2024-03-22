@@ -81,9 +81,7 @@ class ActionModule(ActionBase):
 			if not backup_return.get('failed'):
 				self._remove_backup(tmp, task_vars, bak_file)
 
-		ret['changed'] = template_return.get('changed', False)
-
-		return ret
+		return template_return
 
 	def _restore_config(self, tmp, task_vars, bak_file, dest):
 		# Note: Ignore if it succeeded or not
