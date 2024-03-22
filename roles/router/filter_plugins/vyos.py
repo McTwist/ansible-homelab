@@ -79,7 +79,12 @@ class FilterModule:
 							new_rule = dict()
 							rul[old_rule['number']] = new_rule
 							new_rule['action'] = old_rule['action']
-							new_rule['jump-target'] = old_rule['jump_target']
+							if 'jump_target' in old_rule:
+								new_rule['jump-target'] = old_rule['jump_target']
+							if 'protocol' in old_rule:
+								new_rule['protocol'] = old_rule['protocol']
+							if 'disable' in old_rule and old_rule['disable']:
+								new_rule['disable'] = {}
 							if 'inbound_interface' in old_rule:
 								new_rule['inbound-interface'] = dict(name=old_rule['inbound_interface'])
 							if 'outbound_interface' in old_rule:
@@ -95,14 +100,26 @@ class FilterModule:
 							new_rule = dict()
 							rul[old_rule['number']] = new_rule
 							new_rule['action'] = old_rule['action']
+							if 'jump_target' in old_rule:
+								new_rule['jump-target'] = old_rule['jump_target']
+							if 'protocol' in old_rule:
+								new_rule['protocol'] = old_rule['protocol']
+							if 'disable' in old_rule and old_rule['disable']:
+								new_rule['disable'] = {}
 							for gr, v in old_rule.items():
 								if gr in ['source', 'destination']:
-									gro = dict()
-									new_rule[gr] = dict(group=gro)
-									if 'address_group' in v['group']:
-										gro['address-group'] = v['group']['address_group']
-									if 'network_group' in v['group']:
-										gro['network-group'] = v['group']['network_group']
+									if gr not in new_rule:
+										new_rule[gr] = dict()
+									if 'group' in v:
+										if 'group' not in new_rule[gr]:
+											new_rule[gr]['group'] = dict()
+										gro = new_rule[gr]['group']
+										if 'address_group' in v['group']:
+											gro['address-group'] = v['group']['address_group']
+										if 'network_group' in v['group']:
+											gro['network-group'] = v['group']['network_group']
+									elif 'port' in v:
+										new_rule[gr]['port'] = v['port']
 								elif gr == 'state':
 									if v['new']:
 										new_rule['state'] = 'new'
@@ -145,8 +162,6 @@ class FilterModule:
 		#	ret['interface'] = dict()
 		#	for inter in config['interfaces']:
 		#		ret['interface'] = ret['interface'] | inter
-		#if 'forward' in config:
-		#	ret['forward'] = deepcopy(config['forward'])
 		return ret
 	def nat(self, config: dict, inbound_interface : str) -> dict:
 		"""
