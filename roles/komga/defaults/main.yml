@@ -1,6 +1,6 @@
 ---
 java_version: 17
 java_max_memory: "3g"
-komga_version: "1.10.3"
+komga_version: "latest"
 komga_home: "/var/lib/komga"
 komga_port: 8080 # Default: 25600

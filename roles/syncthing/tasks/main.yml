@@ -29,9 +29,14 @@
 
 - name: Download Syncthing Discovery
   tags: discovery
-  get_url:
-    url: https://github.com/syncthing/discosrv/releases/download/v1.18.6/stdiscosrv-linux-amd64-v1.18.6.tar.gz
+  github_download:
+    repo: syncthing/discosrv
     dest: /tmp/stdiscosrv.tar.gz
+    regex: 'stdiscosrv-linux-amd64-.*\.tar\.gz'
+    tag: "{{ stdiscosrv_version }}"
+  #get_url:
+  #  url: https://github.com/syncthing/discosrv/releases/download/v1.18.6/stdiscosrv-linux-amd64-v1.18.6.tar.gz
+  #  dest: /tmp/stdiscosrv.tar.gz
 - name: Unpack Syncthing Discovery
   tags: discovery
   unarchive:
@@ -69,9 +74,14 @@
 
 - name: Download Syncthing Relay
   tags: relay
-  get_url:
-    url: https://github.com/syncthing/relaysrv/releases/download/v1.18.6/strelaysrv-linux-amd64-v1.18.6.tar.gz
+  github_download:
+    repo: syncthing/relaysrv
     dest: /tmp/strelaysrv.tar.gz
+    regex: 'strelaysrv-linux-amd64-.*\.tar\.gz'
+    tag: "{{ strelaysrv_version }}"
+  #get_url:
+  #  url: https://github.com/syncthing/relaysrv/releases/download/v1.18.6/strelaysrv-linux-amd64-v1.18.6.tar.gz
+  #  dest: /tmp/strelaysrv.tar.gz
 - name: Unpack Syncthing Relay
   tags: relay
   unarchive:

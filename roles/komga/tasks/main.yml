@@ -25,10 +25,17 @@
     group: komga
 
 - name: Download Komga
-  get_url:
-    url: https://github.com/gotson/komga/releases/download/{{ komga_version }}/komga-{{ komga_version }}.jar
-    checksum: "sha256:https://github.com/gotson/komga/releases/download/{{ komga_version }}/checksums_sha256.txt"
+  github_download:
+    repo: gotson/komga
     dest: /usr/local/bin/komga.jar
+    regex: 'komga.*\.jar'
+    tag: "{{ komga_version }}"
+    checksum_file: 'sha256:checksums_sha256\.txt'
+  notify: restart
+  #get_url:
+  #  url: https://github.com/gotson/komga/releases/download/{{ komga_version }}/komga-{{ komga_version }}.jar
+  #  checksum: "sha256:https://github.com/gotson/komga/releases/download/{{ komga_version }}/checksums_sha256.txt"
+  #  dest: /usr/local/bin/komga.jar
 - name: Install Komga Service
   block:
   - name: Copy service file
