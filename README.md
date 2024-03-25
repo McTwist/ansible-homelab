@@ -15,6 +15,7 @@ For config there is `ansible.cfg` which will modify some of the default behavior
 ### Playbooks
 
 - [bootstrap](bootstrap.yml): Connect and set up the host specified. Interactive.
+- [emby](emby.yml): Install and configure Emby.
 - [komga](komga.yml): Install and configure Komga.
 - [network](network.yml): Configure network services like DHCP, DNS and Prometheus. Has tags to specify which type of service to update. Uses VyOS and PiHole. Variables used are specified in host variables.
 - [rustdesk](rustdesk.yml): Install Rustdesk ID and Relay services.
@@ -80,6 +81,7 @@ A list containing all roles with a brief explaination of what they do.
 
 - [apache2](roles/apache2): Set up apache with domains.
 - [bootstrap](roles/bootstrap): Configure host to connect to.
+- [emby](roles/emby): Set up Emby with config.
 - [goacccess](roles/goacccess): Set up goaccess for statistics for apache.
 - [komga](roles/komga): Set up Komga with config.
 - [mysql](roles/mysql): Set up MariaDB with databases, users and permissions.

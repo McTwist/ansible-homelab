@@ -1,0 +1,10 @@
+---
+- name: Download emby
+  github_download:
+    repo: MediaBrowser/Emby.Releases
+    dest: /tmp/emby.deb
+    regex: 'emby-server-deb_.*_amd64\.deb'
+    tag: "{{ emby_version }}"
+- name: Install emby
+  apt:
+    deb: /tmp/emby.deb

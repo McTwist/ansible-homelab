@@ -1,0 +1,8 @@
+---
+- name: Install Emby Server
+  hosts: emby
+  gather_facts: yes
+  become: yes
+  tasks:
+  - import_role:
+      name: emby
