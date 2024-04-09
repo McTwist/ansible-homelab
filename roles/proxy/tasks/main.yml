@@ -1,7 +1,6 @@
 ---
 
 - name: Install packages
-  tags: always
   package:
     name:
     - nginx
@@ -9,8 +8,26 @@
     - "{{ 'python3-' if (ansible_pkg_mgr | lower) == 'apt' else '' }}certbot-nginx"
     state: present
 
+- name: Find existing configs
+  find:
+    paths: /etc/nginx/http.d
+    patterns: "*.conf"
+  register: configs
+
+- name: Set new facts
+  vars:
+    prev_config: "{{ configs.files | map(attribute='path') | map('basename') }}"
+    curr_config: "{{ proxies | map(attribute='name') | product(['.conf']) | map('join') }}"
+  set_fact:
+    remove_config: "{{ prev_config | difference(curr_config) | difference(['security.conf', 'default.conf']) }}"
+
+- name: Remove old config
+  file:
+    state: absent
+    path: /etc/nginx/http.d/{{ item }}
+  loop: "{{ remove_config }}"
+
 - name: Install security SSL
-  tags: always
   copy:
     src: security.conf
     dest: /etc/nginx/http.d/security.conf
@@ -18,7 +35,6 @@
     group: root
 
 - name: Make sure certbot runs once a day
-  tags: always
   block:
   - name: Enable systemd timer
     systemd:
@@ -29,13 +45,12 @@
   - name: Enable cronjob
     cron:
       name: certbot-renewal
-      job: /bin/bash -lc '/usr/bin/certbot -q renew'
+      job: /bin/sh -lc '/usr/bin/certbot -q renew'
       minute: "0"
       hour: "14"
     when: "'openrc' == ansible_service_mgr"
 
 - name: Create ACME account
-  tags: always
   command: /usr/bin/certbot -n register --agree-tos --email {{ web_cert_email }}
   args:
     # Avoid trying to register twice
@@ -43,7 +58,6 @@
   when: web_cert_email is defined
 
 - name: Install certificates
-  tags: always
   command: >-
     /usr/bin/certbot -n --nginx certonly -d {{ item.name }}
     {{ [item.alias | default([])] | flatten | product(['-d ']) | map('join') | join(" ") }}
@@ -53,9 +67,9 @@
   loop: "{{ proxies }}"
   loop_control:
     label: "{{ item.name }}"
+  notify: restart nginx
 
 - name: Install configs
-  tags: always
   vars:
     site: "{{ item }}"
   template_config:
@@ -68,12 +82,5 @@
   loop: "{{ proxies }}"
   loop_control:
     label: "{{ item.name }}"
-
-- name: Reload nginx
-  tags: always
-  service:
-    name: nginx
-    state: restarted
-    enabled: yes
-
+  notify: restart nginx
 
