@@ -1,66 +1,62 @@
 ---
 
-- name: Install apache
+- name: Manage Apache
   tags: always
-  package:
-    name: apache2
-    state: present
+  block:
+  - name: Install apache
+    package:
+      name: apache2
+      state: present
 
-- name: Disable apache2 modules
-  tags: always
-  apache2_module:
-    name: "{{ item }}"
-    state: absent
-    warn_mpm_absent: no
-  with_items:
-  - mpm_itk
-  - mpm_prefork
-  - mpm_worker
+  - name: Disable apache2 modules
+    apache2_module:
+      name: "{{ item }}"
+      state: absent
+      warn_mpm_absent: no
+    with_items:
+    - mpm_itk
+    - mpm_prefork
+    - mpm_worker
 
-- name: Enable apache2 modules
-  tags: always
-  apache2_module:
-    name: "{{ item }}"
-  with_items:
-  - mpm_event
-  - actions
-  - rewrite
+  - name: Enable apache2 modules
+    apache2_module:
+      name: "{{ item }}"
+    with_items:
+    - mpm_event
+    - actions
+    - rewrite
 
-- name: Set up site config
-  tags: always
-  vars:
-    site: "{{ item }}"
-  template_config:
-    src: site.conf.j2
-    dest: /etc/apache2/sites-enabled/{{ item.name }}.conf
-    owner: www-data
-    group: www-data
-    lstrip_blocks: yes
-    validate: apachectl -t
-  loop: "{{ domains }}"
-  loop_control:
-    label: "{{ item.name }}"
+  - name: Set up site config
+    vars:
+      site: "{{ item }}"
+    template_config:
+      src: site.conf.j2
+      dest: /etc/apache2/sites-enabled/{{ item.name }}.conf
+      owner: www-data
+      group: www-data
+      lstrip_blocks: yes
+      validate: apachectl -t
+    loop: "{{ domains }}"
+    loop_control:
+      label: "{{ item.name }}"
 
-- name: Set up phpmyadmin
-  tags: always
-  template_config:
-    src: phpmyadmin.conf.j2
-    dest: /etc/apache2/conf-enabled/phpmyadmin.conf
-    owner: www-data
-    group: www-data
-    lstrip_blocks: yes
-    validate: apachectl -t
+  - name: Set up phpmyadmin
+    template_config:
+      src: phpmyadmin.conf.j2
+      dest: /etc/apache2/conf-enabled/phpmyadmin.conf
+      owner: www-data
+      group: www-data
+      lstrip_blocks: yes
+      validate: apachectl -t
 
-- name: Set up statistics
-  tags: always
-  template_config:
-    src: statistics.conf.j2
-    dest: /etc/apache2/conf-enabled/statistics.conf
-    owner: www-data
-    group: www-data
-    lstrip_blocks: yes
-    validate: apachectl -t
+  - name: Set up statistics
+    template_config:
+      src: statistics.conf.j2
+      dest: /etc/apache2/conf-enabled/statistics.conf
+      owner: www-data
+      group: www-data
+      lstrip_blocks: yes
+      validate: apachectl -t
 
-- name: Reload apache
-  tags: always
-  command: apachectl graceful
+  - name: Reload apache
+    command: apachectl graceful
