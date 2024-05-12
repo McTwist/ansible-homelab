@@ -9,9 +9,11 @@
   - Restart pveproxy
 
 - name: Fix containers
-  replace:
-    path: /lib/systemd/system/lxcfs.service
-    regexp: "ExecStart=/usr/bin/lxcfs /var/lib/lxcfs"
-    replace: "ExecStart=/usr/bin/lxcfs -l /var/lib/lxcfs"
+  copy:
+    dest: /etc/systemd/system/lxcfs.service.d/override.conf
+    content: |-
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/lxcfs /var/lib/lxcfs -l
   notify:
   - Restart lxcfs
