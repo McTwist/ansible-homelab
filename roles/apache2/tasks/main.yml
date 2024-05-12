@@ -25,6 +25,14 @@
     - mpm_event
     - actions
     - rewrite
+    - remoteip
+
+  - name: Install log format
+    copy:
+      dest: /etc/apache2/conf-enabled/proxy-log.conf
+      content: |
+        LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
+      #LogFormat "%{X-Forwarded-For}i (via: %h) %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
 
   - name: Set up site config
     vars:
