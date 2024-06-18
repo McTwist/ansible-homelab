@@ -3,6 +3,6 @@
 ansible-inventory servers --list | jq -r '
 	._meta.hostvars
 	| keys[] as $k
-	| "\(.[$k]
-	| .dhcp_ipv4) \($k)"
-' | sort -V
+	| [.[$k] | .dhcp_ipv4, $k]
+	| @tsv
+' | sort -V | column -t -s $'\t'

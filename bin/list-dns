@@ -1,8 +1,20 @@
 #!/bin/bash
 
+if [ "$#" -eq 0 ]; then
+	ansible-inventory server --list | jq -r '
+		[._meta.hostvars[].dns
+			| select(. != null)
+			| keys[]]
+		| unique
+		| @tsv'
+	exit 0
+fi
+
 ansible-inventory servers --list | jq --arg type "$1" -r '
 	._meta.hostvars[].dns[$type]
 	| select(. != null)
 	| .[]
-	| "\(.type) \(.name) \(.[.type | ascii_downcase] // [.host, .port] // "dynamic")"
-' | sort
+	| [.type, .name,
+		.[.type | ascii_downcase] // (.host, .port | tostring) // "dynamic"]
+	| @tsv
+' | sort | column -t -s $'\t'
