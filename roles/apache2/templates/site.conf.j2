@@ -13,7 +13,7 @@
     DocumentRoot {{ path_domain }}
     {% endif %}
     ErrorLog {{ path_tmp }}/error.log
-    CustomLog {{ path_tmp }}/access.log proxy_combined
+    CustomLog {{ path_tmp }}/access.log combined
     <Directory {{ path_domain }}>
         Require all granted
         AllowOverride All

@@ -1,0 +1,5 @@
+{{ ansible_managed | comment(decoration='# ') }}
+<IfModule mod_remoteip.c>
+    RemoteIPHeader X-Forwarded-For
+    RemoteIPInternalProxy {{ proxies | map('extract', hostvars, 'dhcp_ipv4') | join(' ') }}
+</IfModule>
