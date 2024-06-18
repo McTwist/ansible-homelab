@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ansible-inventory servers --list | jq -r '
+	._meta.hostvars
+	| keys[] as $k
+	| .[$k]
+	| select(.nat != null)
+	| .nat[]
+	| [$k, .description, .destination]
+	| @tsv
+' | sort | column -t -s $'\t'
