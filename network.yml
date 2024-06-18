@@ -24,7 +24,9 @@
 
 - name: PiHole
   become: true
-  serial: 1
+  serial:
+  - 1
+  - "100%"
   tags: pihole
   hosts: pihole:!ignored
   roles:
