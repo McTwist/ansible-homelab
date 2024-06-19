@@ -1,0 +1,9 @@
+---
+- name: Set up phpmyadmin
+  template_config:
+    src: phpmyadmin.conf.j2
+    dest: /etc/apache2/conf-enabled/phpmyadmin.conf
+    owner: www-data
+    group: www-data
+    lstrip_blocks: yes
+    validate: apachectl -t

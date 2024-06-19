@@ -2,6 +2,7 @@
 
 - name: Manage Apache
   tags: always
+  notify: Reload apache
   block:
   - name: Install apache
     package:
@@ -25,18 +26,6 @@
     - mpm_event
     - actions
     - rewrite
-    - remoteip
-
-  #- name: Install log format
-  #  copy:
-  #    dest: /etc/apache2/conf-enabled/proxy-log.conf
-  #    content: |
-  #      LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
-  #    #LogFormat "%{X-Forwarded-For}i (via: %h) %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
-  - name: Remove log format
-    file:
-      path: /etc/apache2/conf-enabled/proxy-log.conf
-      state: absent
 
   - name: Set up site config
     vars:
@@ -52,39 +41,11 @@
     loop_control:
       label: "{{ item.name }}"
 
-  - name: Set up remoteip
-    template_config:
-      src: remoteip.conf.j2
-      dest: /etc/apache2/conf-enabled/remoteip.conf
-      owner: www-data
-      group: www-data
-      lstrip_blocks: yes
-      validate: apachectl -t
-    when: proxies is defined
+  - name: remoteip
+    import_tasks: remoteip.yml
 
-  - name: Remove remoteip
-    file:
-      path: /etc/apache2/conf-enabled/remoteip.conf
-      state: absent
-    when: proxies is not defined
+  - name: phpmyadmin
+    import_tasks: phpmyadmin.yml
 
-  - name: Set up phpmyadmin
-    template_config:
-      src: phpmyadmin.conf.j2
-      dest: /etc/apache2/conf-enabled/phpmyadmin.conf
-      owner: www-data
-      group: www-data
-      lstrip_blocks: yes
-      validate: apachectl -t
-
-  - name: Set up statistics
-    template_config:
-      src: statistics.conf.j2
-      dest: /etc/apache2/conf-enabled/statistics.conf
-      owner: www-data
-      group: www-data
-      lstrip_blocks: yes
-      validate: apachectl -t
-
-  - name: Reload apache
-    command: apachectl graceful
+  - name: statistics
+    import_tasks: statistics.yml

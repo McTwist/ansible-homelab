@@ -1,0 +1,42 @@
+---
+# Note: Left for reference (deprecated)
+#- name: Install log format
+#  copy:
+#    dest: /etc/apache2/conf-enabled/proxy-log.conf
+#    content: |
+#      LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
+#    #LogFormat "%{X-Forwarded-For}i (via: %h) %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" proxy_combined
+- name: Remove log format
+  file:
+    path: /etc/apache2/conf-enabled/proxy-log.conf
+    state: absent
+  notify: Reload apache
+
+- name: Remove remoteip
+  when: proxies is not defined
+  block:
+  - name: Disable mod_remoteip
+    apache2_module:
+      name: remoteip
+      state: absent
+
+  - name: Remove config
+    file:
+      path: /etc/apache2/conf-enabled/remoteip.conf
+      state: absent
+
+- name: Enable remoteip
+  when: proxies is defined
+  block:
+  - name: Enable mod_remoteip
+    apache2_module:
+      name: remoteip
+
+  - name: Add config
+    template_config:
+      src: remoteip.conf.j2
+      dest: /etc/apache2/conf-enabled/remoteip.conf
+      owner: www-data
+      group: www-data
+      lstrip_blocks: yes
+      validate: apachectl -t

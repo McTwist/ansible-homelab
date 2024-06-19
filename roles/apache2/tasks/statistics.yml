@@ -1,0 +1,9 @@
+---
+- name: Set up statistics
+  template_config:
+    src: statistics.conf.j2
+    dest: /etc/apache2/conf-enabled/statistics.conf
+    owner: www-data
+    group: www-data
+    lstrip_blocks: yes
+    validate: apachectl -t
