@@ -1,0 +1,10 @@
+---
+
+- name: Remove subscription
+  replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    # https://johnscs.com/remove-proxmox51-subscription-notice/
+    regexp: "((\\s.)(Ext.Msg.show\\(\\{\\s+title: gettext\\('No valid sub))"
+    replace: '\2void({ //\3'
+  notify:
+  - Restart pveproxy

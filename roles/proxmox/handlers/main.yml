@@ -1,0 +1,17 @@
+---
+
+- name: Restart pveproxy
+  service:
+    name: pveproxy
+    state: restarted
+- name: Restart lxcfs
+  debug:
+    msg: "Do lxc shutdown, daemon-reload and restart lxcfs"
+- name: Restart proxmox-backup-proxy
+  service:
+    name: proxmox-backup-proxy
+    state: restarted
+- name: Run postmap
+  command: postmap /etc/postfix/sasl/passwd
+- name: Reload postfix
+  command: postfix reload

@@ -1,0 +1,52 @@
+---
+
+- name: Install dependencies
+  package:
+    name: libsasl2-modules
+    state: present
+
+- name: Set up postfix relay
+  block:
+  - name: Check encrypted variable
+    no_log: yes
+    set_fact:
+      mail_pass: "{{ mail_pass }}"
+
+  - name: Check if db exists
+    stat:
+      path: /etc/postfix/sasl/passwd.db
+    register: sasl_passwd_exists
+    changed_when: not sasl_passwd_exists.stat.exists
+    notify:
+    - Run postmap
+    - Reload postfix
+
+  - name: Set up sasl/passwd
+    copy:
+      dest: /etc/postfix/sasl/passwd
+      mode: '0600'
+      content: |
+        {{ mail_smtp }} {{ mail_user }}:{{ mail_pass }}
+    notify:
+    - Run postmap
+    - Reload postfix
+
+  - name: Update postfix config
+    template:
+      src: main.cf.j2
+      dest: /etc/postfix/main.cf
+      backup: yes
+    notify:
+    - Reload postfix
+
+  rescue:
+  - name: Notify user
+    debug:
+      msg: Skip modifying mail
+
+  when:
+  - mail_host is defined
+  - mail_smtp is defined
+  - mail_user is defined
+  - mail_pass is defined
+

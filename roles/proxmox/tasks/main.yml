@@ -1,0 +1,6 @@
+---
+
+- import_tasks: subscription.yml
+- import_tasks: mail.yml
+- import_tasks: fix_lxc.yml
+  when: "'pve' in group_names"

@@ -90,6 +90,7 @@ A list containing all roles with a brief explanation of what they do.
 - [php-fpm](roles/php-fpm): Set up PHP-FPM with specific versions and modules.
 - [pihole](roles/pihole): Set up PiHole with unbound and adlists.
 - [prometheus](roles/prometheus): Set up prometheus hosts.
+- [proxmox](roles/proxmox): Proxmox hotfixes and adjustments.
 - [proxy](roles/proxy): Set up proxy for web serviecs.
 - [router](roles/router): Set up a router with DHCP, NAT and firewall.
 - [rustdesk](roles/rustdesk): Set up Rustdesk ID and Relay services.

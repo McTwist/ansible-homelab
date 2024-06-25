@@ -1,0 +1,11 @@
+---
+
+- name: Fix containers
+  copy:
+    dest: /etc/systemd/system/lxcfs.service.d/override.conf
+    content: |-
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/lxcfs /var/lib/lxcfs -l
+  notify:
+  - Restart lxcfs
