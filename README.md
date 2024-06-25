@@ -58,6 +58,12 @@ For a `ct`, you also need to specify additional variables.
 
 ## Action plugins
 
+- `github_download`: Downloads latest or a specific release from a github repository. Internally uses `uri` for meta-data fetching, and `get_url` to download release. Most parameters are passed through to `get_url`.
+  - `repo`: The owner and repository. (`<user>/<repo>`)
+  - `dest`: Destination to put the file.
+  - `tag`: A specific tag to download. Latest if omitted.
+  - `regex`: A regular expression to pick a specific file to download.
+  - `checksum_file`: A hash and file to be used to check file integrity. (`<hash>:<filename>`)
 - `template_config`: Like `template`, but a modified validation where it will insert the config into the current system and validate the whole system instead of that single config file.
   - All arguments is the same as `template`, with some minor changes.
   - `dest`: The destination file to write to. Will be backed up before written to.
