@@ -31,3 +31,8 @@ argument-specs:
           custom_config:
             type: "str"
             required: no
+      proxies:
+        type: "list"
+        elements: "string"
+        required: no
+        description: List of proxy hostnames
