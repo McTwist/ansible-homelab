@@ -110,6 +110,7 @@
     tags: apache
     vars:
       domains: "{{ web_config }}"
+      proxies: "{{ groups.webproxy | default(omit) }}"
     include_role:
       name: apache2
 
