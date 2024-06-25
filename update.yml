@@ -13,3 +13,9 @@
   tasks:
   - include_role:
       name: update
+
+- name: Fix proxmox after update
+  hosts: proxmox:!ignored
+  tasks:
+  - include_role:
+      name: proxmox

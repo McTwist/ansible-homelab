@@ -3,7 +3,7 @@
   tags:
   - always
   block:
-  - include_tasks: "{{ ansible_pkg_mgr | lower }}.yml"
+  - include_tasks: "pkg_mgr/{{ ansible_pkg_mgr | lower }}.yml"
   # TODO: Find a better way to handle this
   - name: Check for services
     no_log: yes
@@ -15,13 +15,3 @@
       name: qemu-guest-agent
       state: started
     when: "services is defined and 'qemu-guest-agent' in services"
-
-- name: PVE
-  block:
-  - import_tasks: pve.yml
-  when: "'pve' in group_names"
-
-- name: PBS
-  block:
-  - import_tasks: pbs.yml
-  when: "'pbs' in group_names"

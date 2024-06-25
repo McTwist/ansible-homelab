@@ -1,8 +1,0 @@
----
-- name: Remove subscription
-  replace:
-    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
-    regexp: "((\\s.)(Ext.Msg.show\\(\\{\\s+title: gettext\\('No valid sub))"
-    replace: '\2void({ //\3'
-  notify:
-  - Restart proxmox-backup-proxy
