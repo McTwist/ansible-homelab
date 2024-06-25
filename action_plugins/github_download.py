@@ -48,7 +48,8 @@ class ActionModule(ActionBase):
 		self._play_context.check_mode = check_mode
 
 		if 'failed' in json_response:
-			return _fail(ret, json_response['msg'])
+			display.warning(api)
+			return _fail(ret, "Check: "+json_response['msg'])
 
 		content = json_response['json']
 
@@ -86,7 +87,8 @@ class ActionModule(ActionBase):
 			task_vars=task_vars, tmp=tmp)
 
 		if 'failed' in url_response:
-			return _fail(ret, url_response['msg'])
+			display.warning(download)
+			return _fail(ret, "Download: "+url_response['msg'])
 
 		ret['changed'] = url_response['changed']
 		ret['msg'] = url_response['msg']
