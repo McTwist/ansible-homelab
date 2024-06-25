@@ -9,6 +9,7 @@ class FilterModule:
 			'vyos_dhcp': self.dhcp,
 			'vyos_nat_combine': self.nat_combine,
 		}
+
 	def firewall(self, config: dict) -> dict:
 		ret = {}
 		if 'groups' in config:
@@ -163,6 +164,7 @@ class FilterModule:
 		#	for inter in config['interfaces']:
 		#		ret['interface'] = ret['interface'] | inter
 		return ret
+
 	def nat(self, config: dict, inbound_interface : str) -> dict:
 		"""
 		Prepare nat config
@@ -206,6 +208,7 @@ class FilterModule:
 				rules[index] = deepcopy(static)
 				index += 1
 		return ret
+
 	def dhcp(self, config: list, hostvars: dict) -> dict:
 		"""
 		Prepare dhcp config
@@ -255,6 +258,7 @@ class FilterModule:
 						}
 				sid += 1
 		return ret
+
 	def nat_combine(self, config : list[dict]):
 		"""
 		Combine dhcp_ipv4 into each nat item.
