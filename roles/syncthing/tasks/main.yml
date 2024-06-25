@@ -47,7 +47,7 @@
   tags: discovery
   copy:
     remote_src: yes
-    src: /tmp/stdiscosrv-linux-amd64-v1.18.6/stdiscosrv
+    src: /tmp/stdiscosrv-linux-amd64-{{ stdiscosrv_version }}/stdiscosrv
     dest: /usr/local/bin/stdiscosrv
     mode: '755'
   notify: discosrv
@@ -92,7 +92,7 @@
   tags: relay
   copy:
     remote_src: yes
-    src: /tmp/strelaysrv-linux-amd64-v1.18.6/strelaysrv
+    src: /tmp/strelaysrv-linux-amd64-{{ strelaysrv_version }}/strelaysrv
     dest: /usr/local/bin/strelaysrv
     mode: '755'
   notify: relaysrv
