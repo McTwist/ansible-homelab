@@ -1,5 +1,7 @@
 #!/sbin/openrc-run
 
+name="Syncthing Discovery Server"
+supervisor="supervise-daemon"
 command="/usr/local/bin/stdiscosrv"
 command_args="-http -db-dir=/var/lib/syncthing/discosrv"
 command_user="syncthing"
