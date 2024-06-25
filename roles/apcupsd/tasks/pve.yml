@@ -1,0 +1,44 @@
+---
+- name: Download vmctrl
+  check_mode: no
+  github_download:
+    repo: McTwist/vmctrl
+    dest: /tmp/vmctrl.tar.gz
+    regex: 'v.*\.tar\.gz'
+
+- name: Unpack vmctrl
+  check_mode: no
+  unarchive:
+    remote_src: yes
+    src: /tmp/vmctrl.tar.gz
+    dest: /tmp
+  register: vmctrl
+
+- name: Find vmctrl
+  find:
+    paths: /tmp
+    patterns: "McTwist-vmctrl-*"
+    file_type: directory
+  register: vmctrl_dir
+
+- name: Install vmctrl
+  vars:
+    latest: "{{ vmctrl_dir.files | max(attribute='mtime') }}"
+  command:
+    chdir: "{{ latest.path }}"
+    cmd: bash ./install.sh
+  when: vmctrl.changed
+
+- name: Install onbattery
+  copy:
+    src: pve/onbattery
+    dest: /etc/apcupsd/onbattery
+    mode: '0755'
+    backup: yes
+
+- name: Install offbattery
+  copy:
+    src: pve/offbattery
+    dest: /etc/apcupsd/offbattery
+    mode: '0755'
+    backup: yes

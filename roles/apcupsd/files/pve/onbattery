@@ -1,0 +1,4 @@
+#!/bin/sh
+# Managed by Ansible
+
+/usr/local/sbin/vmctrlctl stop

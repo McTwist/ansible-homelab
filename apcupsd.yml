@@ -1,0 +1,6 @@
+---
+- name: Install apcupsd
+  hosts: pve:!ignored
+  tasks:
+  - import_role:
+      name: apcupsd

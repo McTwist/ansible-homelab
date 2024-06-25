@@ -1,0 +1,9 @@
+---
+- name: Install apcupsd
+  package:
+    name: apcupsd
+    state: present
+
+- name: Handle PVE
+  import_tasks: pve.yml
+  when: "'pve' in groups"

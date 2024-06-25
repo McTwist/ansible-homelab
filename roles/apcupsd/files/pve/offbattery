@@ -1,0 +1,6 @@
+#!/bin/sh
+# Managed by Ansible
+
+/usr/local/sbin/vmctrlctl start
+
+exit 0
