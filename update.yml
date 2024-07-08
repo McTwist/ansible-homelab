@@ -9,6 +9,9 @@
 
 - name: Update
   hosts: vm:ct:node:!ignored
+  module_defaults:
+    setup:
+      gather_subset: "!all"
   gather_facts: yes
   tasks:
   - include_role:
