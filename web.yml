@@ -3,6 +3,9 @@
 - name: Install web server
   hosts: web
   become: yes
+  module_defaults:
+    setup:
+      gather_subset: "!all"
   gather_facts: yes
   vars_files:
   - web-vars.yml
@@ -174,6 +177,9 @@
 - name: Install proxy
   tags: proxy
   become: yes
+  module_defaults:
+    setup:
+      gather_subset: "!all"
   gather_facts: yes
   hosts: webproxy
   vars_files: web-vars.yml

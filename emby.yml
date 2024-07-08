@@ -1,6 +1,9 @@
 ---
 - name: Install Emby Server
   hosts: emby
+  module_defaults:
+    setup:
+      gather_subset: "!all"
   gather_facts: yes
   become: yes
   tasks:
